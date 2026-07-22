@@ -51,7 +51,26 @@ gate. That decision belongs to the router and the record.
 
 ## seclint
 
-Not built yet (build plan step 8). Same contract: a deterministic collector
-emitting evidence rows, drawing its rule set from the CWE / OWASP / semgrep
-material noted in the design. Reasoning-heavy security judgment routes to a
-model pass, not into the collector.
+`skills/algol/tools/seclint.py`. Security, the Algol-native axis. A deterministic
+collector emitting evidence rows, each tagged with a CWE. Starter rule set drawn
+from the CWE Top 25 and OWASP material, meant to grow: hardcoded secrets, dynamic
+code execution, shell calls, unsafe deserialization (pickle, unsafe yaml.load),
+disabled TLS verification, and weak hashing. Each rule carries its own
+confidence, the collector's view of how likely the match is a real problem;
+reconcile still enters every row as heuristic.
+
+Two hygiene features. Matches for secret rules are masked, so a secret never
+lands in the record. A line carrying `seclint:ignore` is skipped, the
+framework-false-positive escape hatch. A rule may also carry an `unless` pattern
+that suppresses it on the same line (how `yaml.load` is cleared when a safe
+loader is named).
+
+```
+python skills/algol/tools/seclint.py FILE [FILE ...]
+python skills/algol/tools/seclint.py --rules .algol/compiled/scanner-rules.json --root .
+python skills/algol/tools/seclint.py FILE --rules-file extra-rules.json
+```
+
+The reasoning-heavy security judgment (business-logic flaws, missing controls,
+attack-path chaining) is not in the collector. It routes to a model pass, so the
+collector never claims a verdict it cannot derive.
