@@ -1,0 +1,46 @@
+# Example .algol/policy.toml (starter, illustrative)
+#
+# This is the core product: versioned, path-scoped review standards, compiled
+# into review instructions, scanner rules, routing criteria, and a catalog.
+# Standards are open-ended; the axes below are examples, not a fixed spine.
+# A change to this file is a dated, reviewable diff of how the project reviews.
+
+[meta]
+version = "0"                 # policy schema version
+project = "example"
+
+# Undo-cost classes drive router escalation. A change touching any path in an
+# irreversible class escalates to the deep tier even without another flag.
+[undo_cost.irreversible]
+paths = [
+  "db/migrations/**",         # schema migrations
+  "api/public/**",            # public API surface
+  "billing/**",               # payments
+]
+
+# Declared standards, scoped by path. Each names the axis and the engine that
+# covers it. Security is Algol-native; testing and efficiency route out.
+[[standard]]
+axis = "security"
+paths = ["**/*.py", "**/*.ts"]
+engine = "seclint"            # deterministic collector, Algol-native
+
+[[standard]]
+axis = "brevity"
+paths = ["**/*.md", "docs/**"]
+engine = "brevlint"
+
+[[standard]]
+axis = "policy"
+paths = ["**"]
+engine = "policy-review"      # model pass against these standards, ships in v1
+
+[[standard]]
+axis = "testing"
+paths = ["**"]
+engine = "evidence-locked-uat"   # routed out, not rebuilt
+
+# Routing defaults. The router recommends; it never auto-launches.
+[router]
+default = "skip"
+escalate_irreversible_to = "gauntlet"   # deep tier
