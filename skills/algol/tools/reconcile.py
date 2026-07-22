@@ -34,9 +34,9 @@ from record import (  # noqa: E402
     Finding,
     Observation,
     Record,
-    TIER_RANK,
     dispositions_without_reopens,
 )
+from gauntlet_adapter import parse_run_record  # noqa: E402
 
 Key = tuple  # (file, line, claim)
 
@@ -59,30 +59,9 @@ def _collector_observations(rows: list[dict]) -> list[tuple[Key, Observation]]:
 
 
 def _gauntlet_observations(run: dict) -> tuple[list[tuple[Key, Observation]], dict]:
-    obs: list[tuple[Key, Observation]] = []
-    for f in run.get("findings", []):
-        tier = f.get("tier", "heuristic")  # trust the source; default conservative, never invent "verified"
-        if tier not in TIER_RANK:
-            tier = "heuristic"
-        key = (f["file"], int(f["line"]), f.get("claim", ""))
-        obs.append(
-            (
-                key,
-                Observation(
-                    source="gauntlet",
-                    tier=tier,
-                    confidence=float(f.get("confidence", 1.0)),
-                    evidence=f.get("evidence", ""),
-                    message=f.get("message", ""),
-                ),
-            )
-        )
-    deep = {
-        "source": "gauntlet",
-        "verdict": run.get("verdict", ""),
-        "conditions": list(run.get("conditions", [])),
-    }
-    return obs, deep
+    """Parse a gauntlet run record via the adapter (the single gauntlet parser)."""
+    result = parse_run_record(run)
+    return result.observations(), result.deep_tier()
 
 
 def _same_observation(a: Observation, b: Observation) -> bool:
