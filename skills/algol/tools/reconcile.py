@@ -37,6 +37,7 @@ from record import (  # noqa: E402
     dispositions_without_reopens,
 )
 from gauntlet_adapter import parse_run_record  # noqa: E402
+from compose_adapter import parse_uat, parse_rigor  # noqa: E402
 
 Key = tuple  # (file, line, claim)
 
@@ -101,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="reconcile findings into one record.")
     parser.add_argument("--collector", action="append", type=Path, default=[], help="a collector rows JSON file")
     parser.add_argument("--gauntlet", type=Path, default=None, help="a gauntlet run-record JSON file")
+    parser.add_argument("--uat", type=Path, default=None, help="an evidence-locked-uat result JSON file")
+    parser.add_argument("--rigor", type=Path, default=None, help="an applying-formal-rigor result JSON file")
     parser.add_argument("--base", type=Path, default=None, help="an existing record.json to merge into")
     parser.add_argument("--out", type=Path, required=True, help="where to write the reconciled record")
     args = parser.parse_args(argv)
@@ -121,6 +124,14 @@ def main(argv: list[str] | None = None) -> int:
         run = json.loads(args.gauntlet.read_text(encoding="utf-8"))
         gobs, deep = _gauntlet_observations(run)
         observation_sets.append(gobs)
+
+    for flag, parse in (("uat", parse_uat), ("rigor", parse_rigor)):
+        path = getattr(args, flag)
+        if path is not None:
+            if not path.is_file():
+                print(f"reconcile: {flag} result not found: {path}", file=sys.stderr)
+                return 2
+            observation_sets.append(parse(json.loads(path.read_text(encoding="utf-8"))))
 
     base = None
     if args.base is not None:
