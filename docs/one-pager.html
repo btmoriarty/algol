@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Algol, one page</title>
+<style>
+  html,body{margin:0;background:#0a0e1a;padding:28px 16px;}
+</style>
+</head>
+<body>
+<div id="algol-op">
+<style>
+#algol-op{
+  --bg:#0d1020; --panel:#141a30; --panel2:#1b2340; --line:#2a3560;
+  --ink:#eef1fb; --dim:#9aa6c8; --amber:#f5b942; --grn:#57d38c; --red:#ef6a6a;
+  --blue:#6ea8ff; --mono:'SFMono-Regular',ui-monospace,'Menlo','Consolas',monospace;
+  font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--ink); background:var(--bg); border:1px solid var(--line);
+  border-radius:16px; max-width:860px; margin:0 auto; overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,.35);}
+#algol-op *{box-sizing:border-box}
+.hd{padding:22px 26px 16px;border-bottom:1px solid var(--line);
+  background:radial-gradient(120% 150% at 12% -30%,rgba(245,185,66,.16),transparent 60%);}
+.hd .kick{display:flex;align-items:center;gap:9px;font-size:11px;color:var(--amber);
+  letter-spacing:1.6px;text-transform:uppercase;font-weight:700}
+.hd .dot{width:11px;height:11px;border-radius:50%;background:var(--amber);
+  box-shadow:0 0 14px 2px rgba(245,185,66,.6);animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}45%{opacity:.35;transform:scale(.78)}}
+.hd h1{margin:9px 0 3px;font-size:23px;letter-spacing:.2px}
+.hd p{margin:0;color:var(--dim);font-size:13px;line-height:1.5}
+.def{margin:16px 22px 2px;padding:13px 16px;border:1px solid rgba(245,185,66,.3);border-radius:11px;
+  background:linear-gradient(180deg,rgba(245,185,66,.08),transparent);font-size:13.5px;line-height:1.5}
+.def b{color:var(--amber)} .def .pr{color:var(--ink);font-weight:600}
+.sec{padding:6px 22px 2px}
+.sec .lab{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--amber);margin:14px 0 8px}
+.list{display:flex;flex-direction:column;gap:8px}
+.get{display:grid;grid-template-columns:26px 1fr;gap:11px;padding:11px 13px;
+  border:1px solid var(--line);border-radius:11px;background:var(--panel)}
+.tick{width:26px;height:26px;border-radius:7px;background:rgba(87,211,140,.12);
+  border:1px solid rgba(87,211,140,.4);color:var(--grn);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.get h3{margin:0 0 2px;font-size:14px;line-height:1.3}
+.get .m{font-size:12.5px;color:var(--dim);line-height:1.45}
+.get .m code,.def code{font-family:var(--mono);font-size:11px;color:var(--blue);
+  background:rgba(110,168,255,.1);padding:1px 5px;border-radius:4px}
+.hx{color:var(--amber)} .vx{color:var(--grn)}
+.term{margin-top:4px;background:#080b16;border:1px solid var(--line);border-radius:11px;
+  font-family:var(--mono);font-size:11.5px;line-height:1.5;overflow:auto}
+.term .grp{padding:9px 14px;border-bottom:1px dashed var(--line)}
+.term .grp:last-child{border-bottom:none}
+.term .s{display:block;font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:#5f6b93;margin-bottom:3px}
+.term pre{margin:0;white-space:pre-wrap;color:#cdd6f4}
+.cmd{color:var(--blue)} .err{color:#f0a24a} .mut{color:#7f8db3} .ok{color:var(--grn)} .warn{color:var(--amber)} .py{color:#c99bff}
+.gap{margin:12px 22px 2px;padding:12px 15px;border:1px solid rgba(239,106,106,.4);border-radius:11px;
+  background:rgba(239,106,106,.07);font-size:12.5px;line-height:1.5}
+.gap b{color:var(--red)}
+.foot{margin:14px 22px 12px;border:1px solid var(--line);border-radius:12px;
+  background:var(--panel2);padding:13px 15px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.foot .box .l{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;font-weight:700;margin-bottom:5px}
+.foot .ask .l{color:var(--amber)} .foot .fit .l{color:var(--dim)}
+.foot .box p{margin:0;font-size:12px;color:var(--dim);line-height:1.5}
+.foot .box p code{font-family:var(--mono);font-size:10.5px;color:var(--ink)}
+@media(max-width:560px){.foot{grid-template-columns:1fr}}
+.badge{margin:0 22px 20px;font-size:11px;color:#6f7ba0;display:flex;gap:8px;align-items:center}
+.badge .v{color:var(--grn);font-weight:700}
+</style>
+
+<div class="hd">
+  <div class="kick"><span class="dot"></span>Algol · review control plane for Claude Code · v0.9.0</div>
+  <h1>Algol, one page</h1>
+  <p>The policy, evidence, and decision layer around your Claude Code reviews. Worked example captured from a real run.</p>
+</div>
+
+<div class="def">
+  <b>Algol reviews nothing itself.</b> It reads your versioned standards, recommends a review depth per change by policy and undo-cost, reconciles the engines' findings into one record, and keeps each human decision with the conditions that would reopen it. <span class="pr">Sources supply the strength; Algol preserves it and never promotes a heuristic to verified on its own; the human decides.</span>
+</div>
+
+<div class="sec">
+  <div class="lab">What you get</div>
+  <div class="list">
+    <div class="get"><div class="tick">1</div><div><h3>Review depth by policy, not gut.</h3><div class="m">An irreversible change, like a migration or a payments path, draws a deep-review recommendation on undo-cost alone; an unmatched change like a typo does not.</div></div></div>
+    <div class="get"><div class="tick">2</div><div><h3>One result record after the engines run.</h3><div class="m">Each finding is kept with its source and basis, in one record you read instead of a scrollback per tool.</div></div></div>
+    <div class="get"><div class="tick">3</div><div><h3>Each finding keeps the strength its source gave it.</h3><div class="m">A scanner hit stays <span class="hx">heuristic</span>; <span class="vx">verified</span> comes only from a source that verified it, never from two guesses agreeing.</div></div></div>
+    <div class="get"><div class="tick">4</div><div><h3>A disposition keeps its rationale.</h3><div class="m">Plus any conditions that would reopen it. A decision with no reopen condition is allowed but flagged.</div></div></div>
+    <div class="get"><div class="tick">5</div><div><h3>The review bar is a versioned file.</h3><div class="m">Path-scoped, a contributor can read it, and changing it is a reviewable diff.</div></div></div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="lab">Worked example, captured from a real run (2026-07-23)</div>
+  <div class="term">
+    <div class="grp"><span class="s">compile · stdout</span><pre><span class="cmd">$ compile_policy.py .algol/policy.toml</span>
+wrote .algol/compiled/REVIEW.md
+wrote .algol/compiled/scanner-rules.json
+wrote .algol/compiled/routing.json
+wrote .algol/compiled/catalog.json</pre></div>
+
+    <div class="grp"><span class="s">router · stdout is JSON, rendered excerpt, exit 0</span><pre><span class="cmd">$ router.py --routing .algol/compiled/routing.json \
+    --changed src/auth.py db/migrations/001_init.py docs/readme.md</span>
+gauntlet       <span class="warn">escalation:true</span>   undo_cost:irreversible
+               path: db/migrations/001_init.py
+policy-review  escalation:false  standard:policy
+               paths: src/auth.py, db/migrations/001_init.py, docs/readme.md
+brevlint       escalation:false  standard:brevity   path: docs/readme.md
+seclint        escalation:false  standard:security  path: src/auth.py
+<span class="mut">note: Recommendation only. Algol does not launch an engine; a human runs it.</span></pre></div>
+
+    <div class="grp"><span class="s">collectors · stdout empty, counts to stderr</span><pre><span class="cmd">$ seclint.py  --rules .algol/compiled/scanner-rules.json --root . --out sec.json</span>
+<span class="err">seclint: wrote 3 rows to sec.json</span>
+<span class="cmd">$ brevlint.py --rules .algol/compiled/scanner-rules.json --root . --out brev.json</span>
+<span class="err">brevlint: wrote 1 rows to brev.json</span></pre></div>
+
+    <div class="grp"><span class="s">reconcile · stdout empty, count to stderr</span><pre><span class="cmd">$ reconcile.py --collector sec.json --collector brev.json --out .algol/record.json</span>
+<span class="err">reconcile: wrote 4 findings to .algol/record.json</span></pre></div>
+
+    <div class="grp"><span class="s">record excerpt · .algol/record.json (not stdout)</span><pre>seclint/hardcoded-password  src/auth.py:1     <span class="warn">heuristic</span>
+seclint/aws-access-key      src/auth.py:2     <span class="warn">heuristic</span>
+seclint/os-system           src/auth.py:4     <span class="warn">heuristic</span>
+brevlint/todo-marker        docs/readme.md:5  <span class="warn">heuristic</span></pre></div>
+
+    <div class="grp"><span class="s">disposition · Python record API, returns a Disposition, stdout and stderr empty</span><pre><span class="py">>>> disp = rec.set_disposition(r, todo.id, "accept",
+      "known, tracked in the docs ticket",
+      reopens_if=["if the file ships with the TODO"], by="brian")</span>
+<span class="mut"># after reload: state=accept, rationale + reopens_if preserved, by=brian, <span class="ok">status=heuristic</span></span></pre></div>
+  </div>
+</div>
+
+<div class="gap">
+  <b>The honest gap.</b> The in-repo tools produce four <span style="color:#f5b942">heuristic</span> findings and <b>no verified finding</b>. The migration reads verified only when a real <code>gauntlet</code> record is folded in with a second <code>reconcile --gauntlet gaunt.json --base .algol/record.json</code>. That external step is not run in this harness. The <code style="color:#57d38c">model_corroborated</code> tier is decided, not built.
+</div>
+
+<div class="foot">
+  <div class="box ask"><div class="l">What it asks of you</div>
+    <p>Write one <code>.algol/policy.toml</code> and evolve it through reviewed diffs. Per change: run the router, run the reviewers it recommends, reconcile their outputs, record your decision. Algol adds no new reviewer.</p></div>
+  <div class="box fit"><div class="l">Where it pays off</div>
+    <p>A team on Claude Code running more than one review tool, on changes costly to reverse: security, infrastructure, permissions, data migrations. A solo weekend project will not get much from it.</p></div>
+</div>
+
+<div class="badge"><span class="v">✓ capture checked</span> against the 2026-07-23 acme run. The model_corroborated tier is decided, not built. This example still needs a CI test binding it to the golden-path fixture.</div>
+</div>
+</body>
+</html>
