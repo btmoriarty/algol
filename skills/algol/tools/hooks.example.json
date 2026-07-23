@@ -1,0 +1,21 @@
+{
+  "_comment": "Example Claude Code hooks wiring for Algol. Both hooks are non-modifying: the guard advises before a write, the reporter lints after one. Paths are relative to the repo root; adjust to your layout. Set ALGOL_ROUTING to the compiled routing.json, and ALGOL_GUARD_BLOCK=1 to make the guard block instead of advise.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {"type": "command", "command": "python3 skills/algol/tools/hooks.py pretooluse"}
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {"type": "command", "command": "python3 skills/algol/tools/hooks.py posttooluse"}
+        ]
+      }
+    ]
+  }
+}
