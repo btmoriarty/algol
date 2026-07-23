@@ -2,7 +2,7 @@
 
 For review. A current, honest account of the whole tool: what it is, how it is built, what is shipped, and what is still drafted. Where the repo and a drafted change disagree, this describes the repo and flags the draft.
 
-Status: v0.10.0, public at github.com/btmoriarty/algol. The v1 review scope is local-only, described below. The repository has 98 tests across 13 files: brevlint 9, compile_policy 10, compose_adapter 7, gauntlet_adapter 7, hooks 8, pathmatch 6, policy_review 11, reconcile 8, record 10, router 10, seclint 10, tier_ceilings 1, and golden_path 1. An independent acceptance audit passed, as recorded in docs/ACCEPTANCE.md. On Python 3.11 or later it uses the standard-library `tomllib` module, and it falls back to the `tomli` backport where `tomllib` is unavailable. Version 1.0.0 is reserved until after the managed GitHub check-run, planned for v2. Of the v1.1 work, the tier change and the golden-path regression are applied and shipped in 0.10.0; only the DIY comparison harness remains drafted.
+Status: v0.10.0, public at github.com/btmoriarty/algol. The v1 review scope is local-only, described below. The repository has 98 tests across 13 files: brevlint 9, compile_policy 10, compose_adapter 7, gauntlet_adapter 7, hooks 8, pathmatch 6, policy_review 11, reconcile 8, record 10, router 10, seclint 10, tier_ceilings 1, and golden_path 1. An independent acceptance audit passed, as recorded in docs/ACCEPTANCE.md. On Python 3.11 or later it uses the standard-library `tomllib` module, and it falls back to the `tomli` backport where `tomllib` is unavailable. Version 1.0.0 is reserved until after the managed GitHub check-run, planned for v2. Of the v1.1 work, the `model_corroborated` tier and the executable golden-path regression are applied and shipped in 0.10.0. The golden-path document binding and the DIY comparison harness remain drafted.
 
 ## What it is
 
@@ -52,19 +52,19 @@ The v1 scope is local-only and is currently shipped as v0.10.0. Algol governs lo
 
 ## v1.1 status
 
-The v1.1 work was three tasks. Two are applied and shipped in 0.10.0:
+The v1.1 work has three tasks. Task 1 is applied and shipped. Task 2 is partly applied: the executable regression is shipped, and the document binding remains drafted.
 
 1. The `model_corroborated` tier and per-source ceilings (docs/v1.1-tier-brief.md). Applied to `record.py`, `gauntlet_adapter.py`, and `compose_adapter.py`, with a tier-ceiling test.
 2. A golden-path executable regression (docs/golden-path-fixture-brief.md): `tests/test_golden_path.py` runs the real tools end to end and asserts exact commands, streams, fields, and values, with a checked gauntlet fixture. Its second part, a document binding that also fails CI on a docs-only drift, is specified but not yet built.
 
-One remains drafted:
+Task 3 remains drafted:
 
 3. A DIY comparison harness, specified in docs/diy-comparison-brief.md: an Arm A merge versus Algol's reconcile and record, using the same engine outputs and producing a report from the executed run. It compares only the merge and record layers. Its Arm A design has not yet been reviewed by someone defending the DIY baseline, so it is not applied and not ready for public use.
 
 ## Known limitations and open items
 
 - The one-pager's worked example is not yet bound to the tool by the document-binding check (v1.1 task 2, part 2 is specified, not built). Until it is, treat the one-pager transcript as unverified against the current tool.
-- The DIY comparison proves two narrow, real capability differences, not the broad claim that Algol beats the full review-engine-plus-CLAUDE.md-plus-script workflow. Policy and routing modes are not yet compared, and its Arm A needs a defender's review.
+- A throwaway implementation of the draft DIY comparison showed two narrow capability differences. It did not establish that Algol outperforms the full review-engine-plus-CLAUDE.md-plus-script workflow. Policy and routing modes are not yet compared, and Arm A still needs a defender's review.
 - No managed check-run, no marketplace distribution, and no blind-test result table yet.
 
 ## Docs map
@@ -75,6 +75,6 @@ One remains drafted:
 - docs/CHEATSHEET.md: the one-page cheat sheet.
 - docs/one-pager.md and docs/one-pager.html: the styled one-pager files.
 - docs/golden-path-spec.md: the golden-path fixture spec; the executable regression is applied (tests/test_golden_path.py), the document binding is specified, not built.
-- docs/v1.1-tier-brief.md, docs/golden-path-fixture-brief.md, and docs/diy-comparison-brief.md: the v1.1 task briefs (the tier and golden-path tasks are applied; the DIY comparison is drafted).
+- docs/v1.1-tier-brief.md, docs/golden-path-fixture-brief.md, and docs/diy-comparison-brief.md: the v1.1 task briefs. The tier task is applied. The executable portion of the golden-path task is applied; its document binding remains drafted. The DIY comparison remains drafted.
 - docs/diy-comparison-spec.md: the comparison design.
 - docs/policy.example.toml: a starter policy.
