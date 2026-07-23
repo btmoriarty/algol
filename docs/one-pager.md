@@ -1,8 +1,8 @@
 # Algol
 
-**Review control plane for Claude Code.** v0.9.0, local scope.
+**Review control plane for Claude Code.** v0.10.0, local scope.
 
-Algol is the policy, evidence, and decision layer around your Claude Code reviews. It reviews nothing itself. It reads your versioned review standards, recommends a review depth per change by policy and undo-cost, reconciles the engines' findings into one record without ever promoting a heuristic to verified, and keeps each human decision with the conditions that would reopen it. The rule everything follows from: the tool proves, the human decides, and it never silently upgrades a heuristic to verified.
+Algol is the policy, evidence, and decision layer around your Claude Code reviews. It does not perform a general-purpose bug hunt. It reads your versioned review standards, recommends a review depth per change by policy and undo-cost, reconciles findings from supported sources into one record without ever promoting a heuristic to verified, and keeps each human decision with the conditions that would reopen it. The rule everything follows from: a source supplies the strength, Algol preserves it and never silently upgrades a heuristic to verified, and the human decides.
 
 **Who it is for:** a team on Claude Code running more than one review tool, on changes costly to reverse, such as security, infrastructure, permissions, and data migrations. A solo weekend project will not get much from it.
 
@@ -10,7 +10,7 @@ Algol is the policy, evidence, and decision layer around your Claude Code review
 
 1. **Review depth by policy, not gut.** An irreversible change, a migration or a payments path, draws a deep-review recommendation on undo-cost alone; a typo does not.
 2. **One result record after the engines run,** each finding with its source and basis kept.
-3. **Each finding keeps the strength its source gave it.** A scanner hit stays heuristic; verified comes only from a source that verified it, never from two guesses agreeing.
+3. **Each finding keeps the strength its source gave it.** A scanner hit stays heuristic; a model panel raises a finding to model_corroborated; verified is reserved for a deterministic verifier. Two guesses agreeing never make verified.
 4. **A disposition keeps its rationale** and the conditions that would reopen it. A missing reopen condition is allowed, and flagged.
 5. **The review bar is a versioned, path-scoped file** a contributor can read, changed by a reviewable diff.
 
@@ -62,7 +62,7 @@ rec.set_disposition(r, todo.id, "accept", "known, tracked in the docs ticket",
                     reopens_if=["if the file ships to users with the TODO still present"], by="brian")
 ```
 
-**The honest gap.** The in-repo tools produce four heuristic findings and no verified finding. The migration reads verified, soon `model_corroborated`, only when a real `gauntlet` record is folded in with a second `reconcile ... --gauntlet gaunt.json --base .algol/record.json`. That external step does not run in this harness, so it is not shown.
+**The honest gap.** The in-repo tools produce four heuristic findings. The migration reads `model_corroborated` only when a real `gauntlet` record is folded in with a second `reconcile ... --gauntlet gaunt.json --base .algol/record.json`. That external step does not run in this harness, so it is not shown. A `verified` finding requires a deterministic verifier.
 
 ## What it asks, and where it pays off
 
@@ -70,4 +70,4 @@ Write one `.algol/policy.toml` and evolve it through reviewed diffs. Per change:
 
 ## Status and honesty
 
-v0.9.0, local, 95 tests, an independent acceptance audit passed. Decided and pending: a `model_corroborated` tier below `verified`, so a gauntlet `[V]` anchor no longer reads as unqualified verified. This one-pager's commands and outputs are captured from a real run (the full fixture and assertions are in `docs/golden-path-spec.md`); the gauntlet deep tier is the one step not run here.
+v0.10.0, local, 98 tests, an independent acceptance audit passed. The `model_corroborated` tier is shipped: a gauntlet `[V]` anchor reads `model_corroborated`, not `verified`. This one-pager's commands and outputs are captured from a real run (the full fixture and assertions are in `docs/golden-path-spec.md`); the gauntlet deep tier is the one step not run here.

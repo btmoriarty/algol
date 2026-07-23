@@ -24,10 +24,13 @@ import json
 from dataclasses import dataclass, field, asdict
 
 # Verification tiers, lowest to highest. A tier comes from a source, never from
-# merging. "verified" means a source independently verified the claim (a
-# gauntlet [V path:line] anchor, an ultra-verified finding); "heuristic" is a
-# deterministic collector rule firing, which is a signal, not a proven defect.
-TIERS = ("hypothesis", "heuristic", "inference", "verified")
+# merging. "verified" means a deterministic verifier directly established the
+# claimed condition and kept the evidence to reproduce it (an evidence-locked-uat
+# FAIL is the reference). "model_corroborated" means a model panel independently
+# supported the finding but did not deterministically establish it (a gauntlet [V]
+# anchor). "heuristic" is a deterministic collector rule firing, a signal, not a
+# proven defect.
+TIERS = ("hypothesis", "heuristic", "inference", "model_corroborated", "verified")
 TIER_RANK = {t: i for i, t in enumerate(TIERS)}
 
 DISPOSITION_STATES = ("accept", "suppress", "defer")
@@ -74,8 +77,9 @@ class Finding:
     @property
     def status(self) -> str:
         """Highest tier among observations. Honest because tiers come from
-        sources, not from merging. A finding is 'verified' only when a verified
-        source is present; it is never synthesized."""
+        sources, not from merging. 'verified' appears only when a deterministic
+        verifier is present; 'model_corroborated' when a model panel is the
+        strongest source. Neither is synthesized by merging."""
         if not self.observations:
             return "hypothesis"
         return max((o.tier for o in self.observations), key=lambda t: TIER_RANK[t])

@@ -42,10 +42,10 @@ class TestReconcile(unittest.TestCase):
         self.assertEqual(len(record.findings), 1)
         f = record.findings[0]
         # The finding is verified because a verified SOURCE says so...
-        self.assertEqual(f.status, "verified")
+        self.assertEqual(f.status, "model_corroborated")
         # ...but the heuristic observation is still present and still heuristic.
         tiers = sorted(o.tier for o in f.observations)
-        self.assertEqual(tiers, ["heuristic", "verified"])
+        self.assertEqual(tiers, ["heuristic", "model_corroborated"])
         self.assertEqual(record.deep_tier["verdict"], "CONDITIONAL")
 
     def test_distinct_claims_stay_separate(self) -> None:

@@ -12,8 +12,11 @@ What Algol reads from a run record (a subset of the full gauntlet-run-record):
   verdict     GO / CONDITIONAL / NO-GO, or SKIPPED when gauntlet's own triage
               declined to run (the run-or-skip call is gauntlet's, not Algol's)
   findings    each with file, line, claim, and either an explicit tier or a
-              [V]/[I]/[H] evidence tag; [V] is verified, [I] inference, [H]
-              hypothesis; a missing tier defaults to heuristic, never verified
+              [V]/[I]/[H] evidence tag. [V] is a gauntlet-local anchor label; it
+              maps to Algol's model_corroborated (a model panel corroborates, it
+              does not deterministically verify), [I] inference, [H] hypothesis. A
+              missing tier defaults to heuristic. gauntlet never reaches "verified":
+              an explicit "verified" clamps to model_corroborated.
   conditions  the "reopens if" conditions gauntlet recorded; these seed the
               record's reopens-if (A14)
 
@@ -31,19 +34,25 @@ from record import Observation, TIER_RANK  # noqa: E402
 Key = tuple  # (file, line, claim)
 
 # gauntlet evidence tags to Algol tiers.
-TAG_TO_TIER = {"[V": "verified", "[I": "inference", "[H": "hypothesis"}
+TAG_TO_TIER = {"[V": "model_corroborated", "[I": "inference", "[H": "hypothesis"}
 
 
 def _tier_of(finding: dict) -> str:
     explicit = finding.get("tier")
     if isinstance(explicit, str) and explicit in TIER_RANK:
-        return explicit
-    ev = finding.get("evidence", "")
-    if isinstance(ev, str):
-        for tag, tier in TAG_TO_TIER.items():
-            if ev.lstrip().startswith(tag):
-                return tier
-    return "heuristic"  # never invent "verified" from a source that did not state it
+        tier = explicit
+    else:
+        tier = "heuristic"  # never invent a stronger tier from a source that did not state it
+        ev = finding.get("evidence", "")
+        if isinstance(ev, str):
+            for tag, mapped in TAG_TO_TIER.items():
+                if ev.lstrip().startswith(tag):
+                    tier = mapped
+                    break
+    # gauntlet is a model panel: it corroborates, it never deterministically verifies.
+    if tier == "verified":
+        tier = "model_corroborated"
+    return tier
 
 
 @dataclass

@@ -1,0 +1,9 @@
+{
+  "verdict": "NO-GO",
+  "findings": [
+    {"file": "db/migrations/001_init.py", "line": 2, "claim": "migration/destructive",
+     "evidence": "[V db/migrations/001_init.py:2] DROP TABLE users, irreversible",
+     "message": "destructive migration"}
+  ],
+  "conditions": ["reopens if the DROP is removed or guarded behind a reversible migration"]
+}

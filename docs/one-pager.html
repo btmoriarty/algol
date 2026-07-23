@@ -67,13 +67,13 @@
 </style>
 
 <div class="hd">
-  <div class="kick"><span class="dot"></span>Algol · review control plane for Claude Code · v0.9.0</div>
+  <div class="kick"><span class="dot"></span>Algol · review control plane for Claude Code · v0.10.0</div>
   <h1>Algol, one page</h1>
   <p>The policy, evidence, and decision layer around your Claude Code reviews. Worked example captured from a real run.</p>
 </div>
 
 <div class="def">
-  <b>Algol reviews nothing itself.</b> It reads your versioned standards, recommends a review depth per change by policy and undo-cost, reconciles the engines' findings into one record, and keeps each human decision with the conditions that would reopen it. <span class="pr">Sources supply the strength; Algol preserves it and never promotes a heuristic to verified on its own; the human decides.</span>
+  <b>Algol runs no general-purpose bug hunt.</b> It reads your versioned standards, recommends a review depth per change by policy and undo-cost, reconciles findings from supported sources into one record, and keeps each human decision with the conditions that would reopen it. <span class="pr">Sources supply the strength; Algol preserves it and never promotes a heuristic to verified on its own; the human decides.</span>
 </div>
 
 <div class="sec">
@@ -81,7 +81,7 @@
   <div class="list">
     <div class="get"><div class="tick">1</div><div><h3>Review depth by policy, not gut.</h3><div class="m">An irreversible change, like a migration or a payments path, draws a deep-review recommendation on undo-cost alone; an unmatched change like a typo does not.</div></div></div>
     <div class="get"><div class="tick">2</div><div><h3>One result record after the engines run.</h3><div class="m">Each finding is kept with its source and basis, in one record you read instead of a scrollback per tool.</div></div></div>
-    <div class="get"><div class="tick">3</div><div><h3>Each finding keeps the strength its source gave it.</h3><div class="m">A scanner hit stays <span class="hx">heuristic</span>; <span class="vx">verified</span> comes only from a source that verified it, never from two guesses agreeing.</div></div></div>
+    <div class="get"><div class="tick">3</div><div><h3>Each finding keeps the strength its source gave it.</h3><div class="m">A scanner hit stays <span class="hx">heuristic</span>; a model panel raises it to model_corroborated; <span class="vx">verified</span> is reserved for a deterministic verifier.</div></div></div>
     <div class="get"><div class="tick">4</div><div><h3>A disposition keeps its rationale.</h3><div class="m">Plus any conditions that would reopen it. A decision with no reopen condition is allowed but flagged.</div></div></div>
     <div class="get"><div class="tick">5</div><div><h3>The review bar is a versioned file.</h3><div class="m">Path-scoped, a contributor can read it, and changing it is a reviewable diff.</div></div></div>
   </div>
@@ -127,7 +127,7 @@ brevlint/todo-marker        docs/readme.md:5  <span class="warn">heuristic</span
 </div>
 
 <div class="gap">
-  <b>The honest gap.</b> The in-repo tools produce four <span style="color:#f5b942">heuristic</span> findings and <b>no verified finding</b>. The migration reads verified only when a real <code>gauntlet</code> record is folded in with a second <code>reconcile --gauntlet gaunt.json --base .algol/record.json</code>. That external step is not run in this harness. The <code style="color:#57d38c">model_corroborated</code> tier is decided, not built.
+  <b>The honest gap.</b> The in-repo tools produce four <span style="color:#f5b942">heuristic</span> findings. The migration reads <code style="color:#57d38c">model_corroborated</code> only when a real <code>gauntlet</code> record is folded in with a second <code>reconcile --gauntlet gaunt.json --base .algol/record.json</code>. That external step is not run in this harness. A <code>verified</code> finding requires a deterministic verifier.
 </div>
 
 <div class="foot">
@@ -137,7 +137,7 @@ brevlint/todo-marker        docs/readme.md:5  <span class="warn">heuristic</span
     <p>A team on Claude Code running more than one review tool, on changes costly to reverse: security, infrastructure, permissions, data migrations. A solo weekend project will not get much from it.</p></div>
 </div>
 
-<div class="badge"><span class="v">✓ capture checked</span> against the 2026-07-23 acme run. The model_corroborated tier is decided, not built. This example still needs a CI test binding it to the golden-path fixture.</div>
+<div class="badge"><span class="v">✓ capture checked</span> against the 2026-07-23 acme run. The model_corroborated tier is shipped. The document binding of this example to the golden-path fixture is specified, not yet built.</div>
 </div>
 </body>
 </html>

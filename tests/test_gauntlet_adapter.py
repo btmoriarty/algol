@@ -12,11 +12,17 @@ import gauntlet_adapter as ga  # noqa: E402
 
 
 class TestTierMapping(unittest.TestCase):
-    def test_explicit_tier_wins(self) -> None:
-        self.assertEqual(ga._tier_of({"tier": "verified", "evidence": "[H] guess"}), "verified")
+    def test_explicit_verified_clamps_other_tiers_win(self) -> None:
+        # gauntlet cannot deterministically verify; an explicit "verified" clamps.
+        self.assertEqual(ga._tier_of({"tier": "verified", "evidence": "[H] guess"}), "model_corroborated")
+        # a non-verified explicit tier is still honored.
+        self.assertEqual(ga._tier_of({"tier": "inference", "evidence": "[H]"}), "inference")
+        # the new tier is accepted directly; a bare explicit "verified" still clamps.
+        self.assertEqual(ga._tier_of({"tier": "model_corroborated"}), "model_corroborated")
+        self.assertEqual(ga._tier_of({"tier": "verified"}), "model_corroborated")
 
     def test_evidence_tag_v_i_h(self) -> None:
-        self.assertEqual(ga._tier_of({"evidence": "[V src/a.py:10] anchored"}), "verified")
+        self.assertEqual(ga._tier_of({"evidence": "[V src/a.py:10] anchored"}), "model_corroborated")
         self.assertEqual(ga._tier_of({"evidence": "[I <- V] inferred"}), "inference")
         self.assertEqual(ga._tier_of({"evidence": "[H] hypothesis"}), "hypothesis")
 
@@ -39,7 +45,7 @@ class TestParse(unittest.TestCase):
         self.assertEqual(result.verdict, "CONDITIONAL")
         obs = result.observations()
         self.assertEqual(len(obs), 1)
-        self.assertEqual(obs[0][1].tier, "verified")
+        self.assertEqual(obs[0][1].tier, "model_corroborated")
         deep = result.deep_tier()
         self.assertEqual(deep["reopens_if_seeds"], ["reopens if the input becomes user-controlled"])
         self.assertNotIn("skipped", deep)
@@ -64,7 +70,7 @@ class TestReconcileIntegration(unittest.TestCase):
         }
         gobs, deep = rc._gauntlet_observations(run)
         record = rc.reconcile([gobs], deep_tier=deep)
-        self.assertEqual(record.findings[0].status, "verified")
+        self.assertEqual(record.findings[0].status, "model_corroborated")
         self.assertEqual(record.deep_tier["verdict"], "NO-GO")
         self.assertEqual(record.deep_tier["reopens_if_seeds"], ["reopens if refactored"])
 

@@ -1,6 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.10.0 (2026-07-23)
+
+- New `model_corroborated` evidence tier, between `inference` and `verified`. A gauntlet `[V]` anchor now normalizes to `model_corroborated`, not `verified`. Per-source ceilings cap the collectors at `heuristic`, applying-formal-rigor at `inference`, and gauntlet at `model_corroborated`, so only a deterministic verifier (an evidence-locked-uat FAIL) reaches `verified`. This closes the case where a model panel's own verdict read as `verified`. Changes in `record.py`, `gauntlet_adapter.py`, and `compose_adapter.py`, with a tier-ceiling test.
+- Golden-path regression: `tests/test_golden_path.py` runs the acme worked example end to end through the real tools and asserts the exact commands, streams, fields, and values, using a checked gauntlet fixture (`tests/fixtures/gaunt.json`).
+- CI: `.github/workflows/build.yml` runs the suite on every push and pull request and rebuilds `algol.skill` on the default branch. 98 tests total.
+
+## 0.9.0 (2026-07-22)
+
+First release. The local ReviewOps spine works end to end: the policy compiles, the collectors and the policy-review model pass and the deep tier feed one governed record, the router recommends, and the hooks guard and report. v1 scope per docs/DESIGN.md. 1.0.0 is reserved for after the managed GitHub check-run and a public release; distribution and a public remote are post-release; the blind-test proof (A1, A2) is on the roadmap.
 
 - Policy model (build plan step 4): `skills/algol/tools/compile_policy.py`, a stdlib-only compiler that validates `.algol/policy.toml` and emits the four artifacts (REVIEW.md, scanner-rules.json, routing.json, catalog.json). Deterministic output; provenance via a source content hash. Schema and rules in `skills/algol/references/policy-model.md`. Fixture plus 10 unittests in `tests/`. Floor: Python 3.11+ (tomllib), tomli fallback for older Python.
 - First collector, brevlint (build plan step 5): `skills/algol/tools/brevlint.py` emits deterministic evidence rows for style and brevity (long lines, trailing whitespace, blank-line runs, leftover markers). The shared evidence-row shape lives in `evidence.py`; policy-glob selection with globstar in `pathmatch.py` (reused by later collectors and the router). Collector contract in `skills/algol/references/collectors.md`. 15 more unittests; a collector reports and never gates.

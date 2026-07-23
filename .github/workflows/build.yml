@@ -1,0 +1,42 @@
+name: CI
+
+# Runs the test suite on every push and pull request, then rebuilds the
+# installable .skill bundle on the default branch and commits it back. The
+# test job is the gate the golden-path regression (v1.1 task 2) plugs into.
+#
+# Commit this file from a real terminal: an API token lacks the workflow scope.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run the full suite
+        run: python3 -m unittest discover -s tests -v
+
+  bundle:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Rebuild the .skill bundle
+        run: bash build.sh
+      - name: Commit the bundle if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add algol.skill
+          git diff --cached --quiet || (git commit -m "Rebuild algol.skill [skip ci]" && git push origin HEAD:${{ github.ref_name }})

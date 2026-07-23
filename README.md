@@ -2,7 +2,7 @@
 
 A project-controlled policy, routing, and governance layer that sits above code-review engines rather than being one. Algol reviews nothing itself. It reads the project's versioned review standards, decides which engine handles a given change, reconciles every engine's findings into one record without silently upgrading a heuristic to verified, and preserves each human decision with the conditions that would reopen it. Category: ReviewOps for Claude Code.
 
-Status: scaffold (v0.0.1). No components built yet. The design of record is [docs/DESIGN.md](docs/DESIGN.md).
+Status: v0.10.0, local scope. The design of record is [docs/DESIGN.md](docs/DESIGN.md); the acceptance record is [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 ## Who it is for
 
@@ -22,7 +22,18 @@ Claude Code already ships strong reviewers, and the ecosystem is filling with mo
 
 ## Install
 
-Not yet packaged. Once v1 ships, install will follow the shared skills standard and a marketplace plugin (see docs/DESIGN.md, v2 and later). For now, clone and read the design.
+Clone the repo and run the tools directly (Python 3.11+, standard library only). Package the skill bundle with `./build.sh`, which produces `algol.skill`. A shared skills standard and a marketplace plugin are post-release (see docs/DESIGN.md).
+
+Quick start:
+
+```
+python skills/algol/tools/compile_policy.py .algol/policy.toml
+python skills/algol/tools/router.py --routing .algol/compiled/routing.json --changed src/a.py
+python skills/algol/tools/brevlint.py --rules .algol/compiled/scanner-rules.json --root . --out rows.json
+python skills/algol/tools/reconcile.py --collector rows.json --out .algol/record.json
+```
+
+An example policy is at [docs/policy.example.toml](docs/policy.example.toml).
 
 ## Data handling
 

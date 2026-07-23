@@ -23,7 +23,7 @@ class TestFinding(unittest.TestCase):
         self.assertNotEqual(a.id, rec.Finding("f.py", 4, "brevlint/long-line").id)
 
     def test_status_is_highest_tier(self) -> None:
-        f = rec.Finding("f.py", 3, "c", observations=[obs("heuristic"), obs("verified", source="gauntlet")])
+        f = rec.Finding("f.py", 3, "c", observations=[obs("heuristic"), obs("verified", source="evidence-locked-uat")])
         self.assertEqual(f.status, "verified")
 
     def test_status_empty_is_hypothesis(self) -> None:
@@ -57,7 +57,7 @@ class TestDisposition(unittest.TestCase):
 class TestSerialization(unittest.TestCase):
     def test_round_trip(self) -> None:
         r = rec.Record(
-            findings=[rec.Finding("f.py", 3, "c", observations=[obs("heuristic"), obs("verified", "gauntlet")])],
+            findings=[rec.Finding("f.py", 3, "c", observations=[obs("heuristic"), obs("verified", "evidence-locked-uat")])],
             deep_tier={"source": "gauntlet", "verdict": "CONDITIONAL", "conditions": ["reopens if X"]},
         )
         fid = r.findings[0].id
@@ -78,3 +78,12 @@ class TestSerialization(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestModelCorroboratedOrdering(unittest.TestCase):
+    def test_model_corroborated_below_verified(self) -> None:
+        both = rec.Finding("f.py", 3, "c", observations=[obs("model_corroborated", source="gauntlet"),
+                                                          obs("verified", source="evidence-locked-uat")])
+        self.assertEqual(both.status, "verified")
+        model_only = rec.Finding("f.py", 4, "c2", observations=[obs("model_corroborated", source="gauntlet")])
+        self.assertEqual(model_only.status, "model_corroborated")

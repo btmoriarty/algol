@@ -76,5 +76,8 @@ def parse_rigor(result: dict) -> list[tuple[Key, Observation]]:
         tier = f.get("tier")
         if tier not in TIER_RANK:
             tier = "inference"
+        # rigor derives from theory; it never deterministically verifies. Cap at inference.
+        if TIER_RANK[tier] > TIER_RANK["inference"]:
+            tier = "inference"
         obs.append((_key(f), _obs("applying-formal-rigor", tier, f)))
     return obs

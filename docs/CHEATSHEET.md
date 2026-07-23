@@ -1,19 +1,24 @@
 # Algol cheat sheet
 
-Provisional (v0.0.1 scaffold). Commands are not built yet; this is the intended shape, kept honest so it can be checked against what ships.
+v0.10.0. Algol governs what gets reviewed and records what was
+decided. A heuristic is never silently upgraded to verified.
 
-Ethos: Algol reviews nothing. It governs what gets reviewed and records what was decided. A heuristic is never silently upgraded to verified.
+| Step | Command | What you get |
+|------|---------|--------------|
+| Compile policy | `compile_policy.py .algol/policy.toml` | REVIEW.md, scanner-rules.json, routing.json, catalog.json |
+| Route a change | `router.py --routing routing.json --changed <paths>` | A recommendation per matched standard, deep-tier escalation on undo-cost. Recommends; you run it |
+| Collect (brevity) | `brevlint.py --rules scanner-rules.json --root .` | Deterministic style and brevity evidence rows |
+| Collect (security) | `seclint.py --rules scanner-rules.json --root .` | CWE-tagged security evidence rows, secrets masked |
+| Policy check | `policy_review.py prompt --review REVIEW.md --changed <files>` | A model-pass prompt; feed it to a model, then `ingest` the result |
+| Reconcile | `reconcile.py --collector rows.json [--gauntlet run.json] --out record.json` | One record, verified kept distinct from heuristic |
+| Deep tier | route to gauntlet, then `reconcile.py --gauntlet run-record.json` | Its verdict and Conflict Ledger fold into the record |
+| Guard and report | wire `hooks.py` via hooks.example.json | A reversibility guard before a write, a collector report after |
 
-| Mode | Say something like | What you get |
-|------|--------------------|--------------|
-| Set policy | "set up review policy for this repo" | A starter `.algol/policy.toml`, path-scoped, compiled into review instructions, scanner rules, and routing criteria |
-| Route a change | "how should this change be reviewed" | A recommendation (skip, a collector, policy-review, `/code-review`, or `ultra`), with the undo-cost that drove it. It recommends; you run it |
-| Collect evidence | "run the collectors on this diff" | Structured rows from seclint and brevlint (rule_id, file, line, evidence, standard, confidence), not a prose review |
-| Check policy | "does this change meet our standards" | policy-review: deviations from what the project declared it cares about, nothing more |
-| Reconcile | "pull the findings into one record" | One record, verified kept distinct from heuristic, correlated claims counted once |
-| Record a decision | "accept this finding" / "won't fix, reopens if..." | A governed record entry with reopens-if conditions, versioned with the repo |
-| Deep review | "gauntlet this" (high undo-cost changes) | Routes to gauntlet; its computed verdict and Conflict Ledger fold into the record |
+All tools are stdlib-only Python 3.11+. Full flags: `--help` on any tool, or the
+`references/` doc for each component.
 
-Your data: your own repository. Policy and the record are plain files under version control. Algol sends nothing on its own.
+Your data: your own repository. Policy and the record are plain files under
+version control. Algol sends nothing on its own.
 
-The floor: the tool proposes; a human decides and runs the engine. No finding originates in Algol except the deterministic collector rows.
+The floor: the tool proposes; a human decides and runs the engine. No finding
+originates in Algol except the deterministic collector rows.
