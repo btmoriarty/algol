@@ -2,7 +2,7 @@
 
 For review. A current, honest account of the whole tool: what it is, how it is built, what is shipped, and what is still drafted. Where the repo and a drafted change disagree, this describes the repo and flags the draft.
 
-Status: v0.10.0, local scope, with no public remote. The repository has 98 tests across 13 files: brevlint 9, compile_policy 10, compose_adapter 7, gauntlet_adapter 7, hooks 8, pathmatch 6, policy_review 11, reconcile 8, record 10, router 10, seclint 10, tier_ceilings 1, and golden_path 1. An independent acceptance audit passed, as recorded in docs/ACCEPTANCE.md. On Python 3.11 or later it uses the standard-library `tomllib` module, and it falls back to the `tomli` backport where `tomllib` is unavailable. Version 1.0.0 is reserved until after the managed GitHub check-run, planned for v2, and a public release. Of the v1.1 work, the tier change and the golden-path regression are applied and shipped in 0.10.0; only the DIY comparison harness remains drafted.
+Status: v0.10.0, public at github.com/btmoriarty/algol. The v1 review scope is local-only, described below. The repository has 98 tests across 13 files: brevlint 9, compile_policy 10, compose_adapter 7, gauntlet_adapter 7, hooks 8, pathmatch 6, policy_review 11, reconcile 8, record 10, router 10, seclint 10, tier_ceilings 1, and golden_path 1. An independent acceptance audit passed, as recorded in docs/ACCEPTANCE.md. On Python 3.11 or later it uses the standard-library `tomllib` module, and it falls back to the `tomli` backport where `tomllib` is unavailable. Version 1.0.0 is reserved until after the managed GitHub check-run, planned for v2. Of the v1.1 work, the tier change and the golden-path regression are applied and shipped in 0.10.0; only the DIY comparison harness remains drafted.
 
 ## What it is
 
@@ -65,8 +65,7 @@ One remains drafted:
 
 - The one-pager's worked example is not yet bound to the tool by the document-binding check (v1.1 task 2, part 2 is specified, not built). Until it is, treat the one-pager transcript as unverified against the current tool.
 - The DIY comparison proves two narrow, real capability differences, not the broad claim that Algol beats the full review-engine-plus-CLAUDE.md-plus-script workflow. Policy and routing modes are not yet compared, and its Arm A needs a defender's review.
-- No public remote, no managed check-run, no marketplace distribution, no blind-test result table yet.
-- The public repository and release packaging are not yet established.
+- No managed check-run, no marketplace distribution, and no blind-test result table yet.
 
 ## Docs map
 
