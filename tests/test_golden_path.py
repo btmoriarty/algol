@@ -44,6 +44,17 @@ MIGRATION = 'def upgrade():\n    execute("DROP TABLE users")\n'
 README = '# acme\n\nSetup instructions.\n\nTODO: document the deploy step\n'
 REOPEN = "if the file ships with the TODO"
 
+EXPECTED_RECS = [
+    {"engine": "gauntlet", "escalation": True,
+     "paths": ["db/migrations/001_init.py"], "reasons": ["undo_cost:irreversible"]},
+    {"engine": "policy-review", "escalation": False,
+     "paths": ["db/migrations/001_init.py", "docs/readme.md", "src/auth.py"], "reasons": ["standard:policy"]},
+    {"engine": "brevlint", "escalation": False,
+     "paths": ["docs/readme.md"], "reasons": ["standard:brevity"]},
+    {"engine": "seclint", "escalation": False,
+     "paths": ["src/auth.py"], "reasons": ["standard:security"]},
+]
+
 
 def run(args, cwd):
     return subprocess.run([sys.executable, *args], cwd=str(cwd), capture_output=True, text=True)
@@ -95,12 +106,11 @@ class TestGoldenPath(unittest.TestCase):
                  "--changed", "src/auth.py", "db/migrations/001_init.py", "docs/readme.md"], d)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(r.stderr, "")
-        recs = {x["engine"]: x for x in json.loads(r.stdout)["recommendations"]}
-        self.assertEqual(set(recs), {"gauntlet", "policy-review", "brevlint", "seclint"})
-        self.assertTrue(recs["gauntlet"]["escalation"])
-        self.assertEqual(recs["gauntlet"]["reasons"], ["undo_cost:irreversible"])
-        self.assertEqual(recs["gauntlet"]["paths"], ["db/migrations/001_init.py"])
-        self.assertFalse(recs["seclint"]["escalation"])
+        payload = json.loads(r.stdout)
+        self.assertEqual(payload["recommendations"], EXPECTED_RECS)
+        self.assertEqual(payload["note"], "Recommendation only. Algol does not launch an engine; a human runs it.")
+        self.assertEqual(payload["default_used"], False)
+        self.assertEqual(payload["change"], ["src/auth.py", "db/migrations/001_init.py", "docs/readme.md"])
         self.assertNotEqual(run([self.t("router.py"), "--changed", "x"], d).returncode, 0)
 
         r = run([self.t("seclint.py"), "--rules", ".algol/compiled/scanner-rules.json",
