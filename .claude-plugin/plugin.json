@@ -1,0 +1,9 @@
+{
+  "name": "algol",
+  "version": "0.10.0",
+  "description": "A review control plane for Claude Code: govern how a project reviews code by policy and undo-cost, reconcile the engines' findings into one governed record, and keep each human decision with the conditions that would reopen it. It reviews nothing itself.",
+  "author": { "name": "Brian Moriarty", "email": "btmoriarty@gmail.com" },
+  "homepage": "https://github.com/btmoriarty/algol",
+  "license": "MIT",
+  "keywords": ["code-review", "governance", "reviewops", "claude-code", "claude-skill"]
+}
