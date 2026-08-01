@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.0 (2026-08-01)
+
+- Raise-to-verified loop. `skills/algol/tools/verify.py` makes reaching a higher tier a targeted, one-finding operation, the same two-step shape as policy-review. `prompt --finding <id>` assembles the verification request, pre-keyed to that finding (file, line, claim) so the answer correlates back, and states the discipline and output schema. `ingest out.json --finding <id>` folds the verifier's output into the record as a `--base` merge and reports the tier change: raised, unchanged, or a warning that the output did not address the finding. The tier ceilings hold: only evidence-locked-uat FAIL reaches `verified`; gauntlet reaches `model_corroborated`; the harness never invents a tier. `--engine {uat,gauntlet}`, `--dry-run`. This is the flip side of never upgrading silently: `verified` is reachable, but only through the deterministic verifier, one command in and one out. Docs in `references/verify.md`; 11 unittests. 170 tests total.
+
 ## 0.14.0 (2026-08-01)
 
 - Strong starter policy, so a cold first run is useful. `skills/algol/starter-policy.toml` ships as the default: its undo-cost globs escalate the surfaces that recur across projects, the deep tier for the irreversible ones (migrations and schema, auth/authz, secrets, money, public API) and a human `/code-review` for the operational ones (infra, deploy, CI workflows, containers, IaC), with seclint/brevlint/policy-review standards over the usual code and docs. `skills/algol/tools/init.py` drops it into a project (`--project` name, `--compile` to build artifacts, `--force` to overwrite), refusing to clobber an existing policy. Defaults ship strict; the globs are broad and meant to be trimmed. Docs in `references/policy-model.md`; README quick start now leads with `init` + `gate`. 16 unittests (starter compiles, routes the risk paths, init behavior).
