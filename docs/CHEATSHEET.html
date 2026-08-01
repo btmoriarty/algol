@@ -1,193 +1,187 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <title>Algol Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Atkinson+Hyperlegible+Next:wght@400;500;600;700&family=Atkinson+Hyperlegible+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  @page { size: Letter landscape; margin: 0.32in; }
-  * { box-sizing: border-box; }
-  body {
-    font-family: "Helvetica Neue", Arial, sans-serif;
-    color: #1c2440; margin: 0; font-size: 8.9pt; line-height: 1.3;
+  :root{
+    --cream:#FDF8F0; --navy:#1a2744; --amber:#BA7517; --red:#A32D2D;
+    --green:#3B6D11; --blue:#185FA5;
+    --mut:rgba(26,39,68,.66); --line:rgba(26,39,68,.22); --wash:rgba(26,39,68,.045);
   }
-  .head { display: flex; align-items: flex-end; justify-content: space-between;
-    border-bottom: 3px solid #22306b; padding-bottom: 5px; margin-bottom: 7px; }
-  .title { font-size: 24pt; font-weight: 800; color: #22306b; letter-spacing: -0.5px; line-height: 1; }
-  .title .sub { font-weight: 400; color: #6b7290; font-size: 15pt; }
-  .tag { color: #45507a; font-size: 9.4pt; margin-top: 5px; max-width: 7.4in; }
-  .tag b { color: #22306b; }
-  .brand { text-align: right; color: #22306b; font-size: 8.6pt; white-space: nowrap; }
-  .brand .star { font-size: 18pt; color: #e6a532; line-height: 1; }
-  .brand .name { font-weight: 800; font-size: 13pt; letter-spacing: 1px; }
-  .brand .ver { color: #6b7290; font-weight: 700; }
+  @page { size: Letter landscape; margin: 0.34in; }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; background:var(--cream); color:var(--navy); }
+  body{ font-family:"Atkinson Hyperlegible Next",system-ui,sans-serif; line-height:1.32;
+    font-size:8.4pt; -webkit-font-smoothing:antialiased; padding:0.1in; }
 
-  .cols { column-count: 3; column-gap: 14px; }
-  .card { break-inside: avoid; border: 1px solid #d3d9ee; border-radius: 5px;
-    margin: 0 0 8px; overflow: hidden; background: #fff; }
-  .card > h2 { margin: 0; font-size: 9.2pt; text-transform: uppercase; letter-spacing: 0.6px;
-    color: #fff; background: #22306b; padding: 3px 8px; font-weight: 700; }
-  .card .body { padding: 6px 8px; }
-  .card.alt > h2 { background: #38477f; }
+  .masthead{ background:var(--blue); color:var(--cream); margin:-0.1in -0.1in 11px;
+    padding:12px 16px 13px; display:flex; justify-content:space-between; align-items:flex-end; gap:22px; }
+  .eyebrow{ font-family:"Atkinson Hyperlegible Mono",ui-monospace,monospace; font-size:8pt;
+    letter-spacing:.24em; text-transform:uppercase; color:rgba(253,248,240,.72); margin:0 0 4px; }
+  h1{ font-family:"Fraunces",Georgia,serif; font-weight:500; font-size:27pt; line-height:1;
+    letter-spacing:-.01em; margin:0; color:var(--cream); }
+  h1 .who{ font-family:"Atkinson Hyperlegible Next",sans-serif; font-weight:400; font-size:12pt;
+    color:rgba(253,248,240,.78); letter-spacing:0; }
+  .lede{ font-size:8.8pt; color:rgba(253,248,240,.92); max-width:66ch; margin:6px 0 0; }
+  .masthead .meta{ font-family:"Atkinson Hyperlegible Mono",monospace; font-size:8pt;
+    color:rgba(253,248,240,.8); text-align:right; white-space:nowrap; line-height:1.55; }
 
-  .say { font-family: "SF Mono", "DejaVu Sans Mono", monospace; font-size: 8.2pt;
-    color: #9a6b12; background: #fbf4e6; border-left: 2px solid #e6a532;
-    padding: 0 4px; border-radius: 2px; display: inline-block; margin: 0 2px 2px 0; }
-  .get { color: #414b70; margin-top: 3px; }
-  .get b { color: #22306b; }
-  .tier { color: #fff; border-radius: 3px; padding: 0 5px; font-weight: 700; font-size: 8.2pt; }
-  .t-h { background: #8a8f9e; }
-  .t-heu { background: #c58a1e; }
-  .t-inf { background: #4a6fa5; }
-  .t-mc { background: #38477f; }
-  .t-ver { background: #2e7d5b; }
-  ul.tight { margin: 3px 0 0; padding-left: 15px; }
-  ul.tight li { margin-bottom: 2px; }
+  .cols{ column-count:3; column-gap:16px; }
+  section{ break-inside:avoid; margin:0 0 11px; }
+  h2{ font-family:"Fraunces",Georgia,serif; font-weight:600; font-size:11pt; margin:0 0 4px;
+    padding-bottom:2px; border-bottom:1.5px solid var(--navy); }
+  .row{ margin:0 0 5px; }
+  .cmd{ font-family:"Atkinson Hyperlegible Mono",monospace; font-size:7.9pt; color:var(--navy);
+    background:var(--wash); border-left:2px solid var(--line); padding:1.5px 5px; border-radius:2px;
+    display:block; margin:0 0 2px; word-break:break-word; }
+  .g{ color:var(--mut); font-size:8.2pt; }
+  .g b{ color:var(--navy); font-weight:700; }
 
-  table.dims { width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 8.5pt; }
-  table.dims td { padding: 2px 4px; border-bottom: 1px solid #e7ebf6; vertical-align: top; }
-  table.dims tr:last-child td { border-bottom: none; }
-  table.dims td.k { color: #22306b; font-weight: 700; white-space: nowrap; }
-  table.dims td.d { color: #414b70; }
+  table.k{ width:100%; border-collapse:collapse; font-size:8.2pt; margin-top:2px; }
+  table.k td{ padding:2px 3px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.k tr:last-child td{ border-bottom:none; }
+  table.k td.t{ font-family:"Atkinson Hyperlegible Mono",monospace; color:var(--navy);
+    white-space:nowrap; font-weight:500; }
+  .verified{ color:var(--green); font-weight:700; }
+  .legend{ border:1px solid var(--line); border-radius:3px; padding:4px 6px; margin-top:4px;
+    font-size:7.8pt; color:var(--mut); }
+  .legend b.v{ color:var(--green); }
 
-  .foot { margin-top: 2px; background: #22306b; color: #fff; border-radius: 5px;
-    padding: 6px 12px; display: flex; justify-content: space-between; align-items: center; font-size: 9pt; gap: 18px; }
-  .foot b { color: #ffd580; }
-  .foot .right { text-align: right; color: #c7cef0; }
+  .foot{ margin-top:6px; border-top:2px solid var(--navy); padding-top:6px;
+    display:flex; justify-content:space-between; gap:20px; }
+  .foot .rule{ font-size:8.6pt; color:var(--navy); max-width:52ch; }
+  .foot .rule .a{ color:var(--amber); font-weight:700; }
+  .foot .note{ font-family:"Atkinson Hyperlegible Mono",monospace; font-size:7.8pt; color:var(--mut);
+    text-align:right; line-height:1.6; white-space:nowrap; }
 </style>
 </head>
 <body>
 
-<div class="head">
+<div class="masthead">
   <div>
-    <div class="title">Algol <span class="sub">cheat sheet</span></div>
-    <div class="tag">Governs how a project reviews code; it <b>reviews nothing itself</b>. Routes each change by policy and undo-cost, reconciles every engine's findings into one record, and never upgrades a heuristic to verified. The commands below are examples; run them how your repo is laid out.</div>
+    <p class="eyebrow">Review control plane &#183; cheat sheet</p>
+    <h1>Algol <span class="who">a review control plane</span></h1>
+    <p class="lede">Governs how a project reviews code; it reviews nothing itself. Routes each change by policy and undo cost, reconciles every engine's findings into one record, and never upgrades a heuristic to verified. The commands are examples; run them how your repo is laid out.</p>
   </div>
-  <div class="brand">
-    <div class="star">&#10022;</div>
-    <div class="name">ALGOL</div>
-    <div>Beta Persei, the Demon Star<br>a review control plane</div>
-    <div class="ver">v0.16.0</div>
-  </div>
+  <div class="meta">Beta Persei<br>the Demon Star<br>v0.16.0<br>Python 3.11+, stdlib</div>
 </div>
 
 <div class="cols">
 
-  <div class="card">
-    <h2>Start: the strong default</h2>
-    <div class="body">
-      <span class="say">init.py --root . --project NAME --compile</span>
-      <div class="get">Writes the shipped starter policy and compiles it. The starter already routes the high-undo-cost surfaces (<b>auth, migrations, money, public API, infra, CI</b>) to a deeper engine, so a cold first run is useful. Defaults ship strict; trim the globs to your repo.</div>
+  <section>
+    <h2>Start</h2>
+    <div class="row">
+      <span class="cmd">init.py --root . --project NAME --compile</span>
+      <span class="g">Writes the strong starter policy and compiles it. It already routes the high undo cost surfaces (<b>auth, migrations, money, public API, infra, CI</b>), so a cold first run is useful. Trim the globs to your repo.</span>
     </div>
-  </div>
+  </section>
 
-  <div class="card alt">
-    <h2>Gate a change</h2>
-    <div class="body">
-      <span class="say">gate.py --base main</span>
-      <div class="get">Runs one change end to end: routes it, runs the collectors on the changed files only, and reconciles into the record. Reports <b>new vs carried</b>; your prior dispositions survive. Silent on a low-risk diff. Also <b>--changed &lt;paths&gt;</b>, <b>--staged</b>, <b>--dry-run</b>.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Route a change</h2>
-    <div class="body">
-      <span class="say">router.py --routing routing.json --changed &lt;paths&gt;</span>
-      <span class="say">router.py ... --format commands</span>
-      <div class="get">A recommendation per matched standard, deep-tier escalation on undo-cost. <b>--format commands</b> prints the exact command to run each engine, silent when the change is low-risk. Recommends; never launches.</div>
-    </div>
-  </div>
-
-  <div class="card alt">
-    <h2>Reconcile &amp; the record</h2>
-    <div class="body">
-      <span class="say">reconcile.py --collector rows.json --out record.json</span>
-      <div class="get">One governed record. Every finding keeps its <b>source</b> and <b>tier</b> kept distinct; a heuristic is never silently upgraded. Re-running with <b>--base</b> preserves human dispositions and their reopens-if.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>The tiers</h2>
-    <div class="body">
-      <table class="dims">
-        <tr><td class="k"><span class="tier t-h">hypothesis</span></td><td class="d">a bare claim, no source yet</td></tr>
-        <tr><td class="k"><span class="tier t-heu">heuristic</span></td><td class="d">a scanner or model pass fired: a signal</td></tr>
-        <tr><td class="k"><span class="tier t-inf">inference</span></td><td class="d">derived from named theory (rigor)</td></tr>
-        <tr><td class="k"><span class="tier t-mc">model_corr.</span></td><td class="d">a panel corroborated it (gauntlet)</td></tr>
-        <tr><td class="k"><span class="tier t-ver">verified</span></td><td class="d">a deterministic verifier proved it</td></tr>
-      </table>
-      <div class="get">Only a deterministic verifier reaches <b>verified</b>. A tier comes from a source, never from merging.</div>
-    </div>
-  </div>
-
-  <div class="card alt">
-    <h2>Raise to verified</h2>
-    <div class="body">
-      <span class="say">verify.py prompt --finding &lt;id&gt;</span>
-      <span class="say">verify.py ingest out.json --finding &lt;id&gt;</span>
-      <div class="get">Hand one finding to the verifier and fold the result back. <b>uat FAIL</b> reaches verified; <b>gauntlet</b> reaches model_corroborated. Never invents a tier; reports the change or that the verifier did not address it.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>The collectors: the floor</h2>
-    <div class="body">
-      <span class="say">seclint.py / brevlint.py --rules scanner-rules.json --root .</span>
-      <div class="get">Deterministic evidence rows (CWE-tagged for seclint, secrets masked). The <b>silent floor</b>: a finding from collectors alone is demoted, never shown as a peer of a real engine's finding.</div>
-    </div>
-  </div>
-
-  <div class="card alt">
-    <h2>Ingest SARIF</h2>
-    <div class="body">
-      <span class="say">sarif_adapter.py results.sarif --out rows.json</span>
-      <div class="get">Any standard tool (<b>CodeQL, Semgrep, bandit, gitleaks, ruff</b>) folded in through <b>--collector</b>, the tool name kept as the source. No per-tool code; tool-suppressed and passing results are dropped.</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Policy check (model pass)</h2>
-    <div class="body">
-      <span class="say">policy_review.py prompt --review REVIEW.md --changed &lt;files&gt;</span>
-      <div class="get">Checks a change against the project's own standards, not a general bug hunt. Feed the prompt to a model, then <b>ingest</b> the result; its rows enter as heuristic.</div>
-    </div>
-  </div>
-
-  <div class="card">
+  <section>
     <h2>Compile the policy</h2>
-    <div class="body">
-      <span class="say">compile_policy.py .algol/policy.toml</span>
-      <div class="get">Turns the versioned <b>.algol/policy.toml</b> into REVIEW.md, scanner-rules.json, routing.json, catalog.json. Deterministic; a policy change is a dated, reviewable diff of how the project reviews.</div>
+    <div class="row">
+      <span class="cmd">compile_policy.py .algol/policy.toml</span>
+      <span class="g">Turns the versioned <b>.algol/policy.toml</b> into REVIEW.md, scanner-rules.json, routing.json, catalog.json. Deterministic; a policy change is a dated, reviewable diff.</span>
     </div>
-  </div>
+  </section>
 
-  <div class="card alt">
+  <section>
+    <h2>Gate a change</h2>
+    <div class="row">
+      <span class="cmd">gate.py --base main</span>
+      <span class="g">Runs one change end to end: routes it, runs the collectors on the changed files only, reconciles into the record. Reports <b>new vs carried</b>; prior dispositions survive. Silent on a low-risk diff. Also <b>--changed</b>, <b>--staged</b>, <b>--dry-run</b>.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Route a change</h2>
+    <div class="row">
+      <span class="cmd">router.py --routing routing.json --changed &lt;paths&gt;</span>
+      <span class="cmd">router.py ... --format commands</span>
+      <span class="g">A recommendation per matched standard, deep tier escalation on undo cost. <b>--format commands</b> prints the exact command to run each engine, silent when the change is low risk. Recommends; never launches.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Reconcile, the record</h2>
+    <div class="row">
+      <span class="cmd">reconcile.py --collector rows.json --out record.json</span>
+      <span class="g">One governed record. Every finding keeps its <b>source</b> and <b>tier</b>, kept distinct. Re-running with <b>--base</b> preserves human dispositions and their reopens-if conditions.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>The tiers</h2>
+    <table class="k">
+      <tr><td class="t">hypothesis</td><td class="g">a bare claim, no source yet</td></tr>
+      <tr><td class="t">heuristic</td><td class="g">a scanner or model pass fired</td></tr>
+      <tr><td class="t">inference</td><td class="g">derived from named theory</td></tr>
+      <tr><td class="t">model_corr.</td><td class="g">a panel corroborated it</td></tr>
+      <tr><td class="t verified">verified</td><td class="g">a deterministic verifier proved it</td></tr>
+    </table>
+    <div class="legend">A tier comes from a source, never from merging. Only a deterministic verifier reaches <b class="v">verified</b>.</div>
+  </section>
+
+  <section>
+    <h2>Raise to verified</h2>
+    <div class="row">
+      <span class="cmd">verify.py prompt --finding &lt;id&gt;</span>
+      <span class="cmd">verify.py ingest out.json --finding &lt;id&gt;</span>
+      <span class="g">Hand one finding to the verifier and fold the result back. <b>uat FAIL</b> reaches <span class="verified">verified</span>; <b>gauntlet</b> reaches model_corroborated. Never invents a tier; reports the change.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Collectors, the floor</h2>
+    <div class="row">
+      <span class="cmd">seclint.py / brevlint.py --rules scanner-rules.json --root .</span>
+      <span class="g">Deterministic evidence rows (CWE tagged for seclint, secrets masked). The <b>silent floor</b>: a finding from collectors alone is demoted, never shown as a peer of a real engine's finding.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ingest SARIF</h2>
+    <div class="row">
+      <span class="cmd">sarif_adapter.py results.sarif --out rows.json</span>
+      <span class="g">Any standard tool (<b>CodeQL, Semgrep, bandit, gitleaks, ruff</b>) folded in through <b>--collector</b>, the tool name kept as the source. No per-tool code; tool-suppressed and passing results drop.</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Policy check, the model pass</h2>
+    <div class="row">
+      <span class="cmd">policy_review.py prompt --review REVIEW.md --changed &lt;files&gt;</span>
+      <span class="g">Checks a change against the project's own standards, not a general bug hunt. Feed the prompt to a model, then <b>ingest</b>; its rows enter as heuristic.</span>
+    </div>
+  </section>
+
+  <section>
     <h2>Deep tier</h2>
-    <div class="body">
-      <span class="say">reconcile.py --gauntlet run.json --base record.json</span>
-      <div class="get">Route to gauntlet, then fold its run in. Its verdict and conditions attach to the record and seed reopens-if. Algol builds no panel; it consumes gauntlet.</div>
+    <div class="row">
+      <span class="cmd">reconcile.py --gauntlet run.json --base record.json</span>
+      <span class="g">Route to gauntlet, then fold its run in. Its verdict and conditions attach to the record and seed reopens-if. Algol builds no panel; it consumes gauntlet.</span>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>Guard &amp; report</h2>
-    <div class="body">
-      <span class="say">wire hooks.py via hooks.example.json</span>
-      <div class="get">A non-modifying reversibility guard before a write to an irreversible path, and a collector report after. Advises by default; blocks only under <b>ALGOL_GUARD_BLOCK=1</b>.</div>
+  <section>
+    <h2>Guard, report, install</h2>
+    <div class="row">
+      <span class="cmd">wire hooks.py via hooks.example.json</span>
+      <span class="g">A non-modifying reversibility guard before a write to an irreversible path, a collector report after. Advises by default.</span>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>Install</h2>
-    <div class="body">
-      <div class="get"><b>Claude Code:</b> symlink or copy <b>skills/algol/</b> into your skills directory.<br><b>Cowork / claude.ai:</b> add <b>algol.skill</b> via Settings &gt; Capabilities, or build it with <b>./build.sh</b>.<br>Then run <b>init</b>, and <b>gate</b> a change. Stdlib-only Python 3.11+.</div>
+    <div class="row">
+      <span class="g"><b>Claude Code:</b> copy skills/algol into your skills dir. <b>Cowork:</b> add algol.skill via Settings, Capabilities, or build with ./build.sh.</span>
     </div>
-  </div>
+  </section>
 
 </div>
 
 <div class="foot">
-  <div><b>Your data:</b> Algol runs against your own repository. The policy and the record are plain files under version control; Algol sends nothing on its own.</div>
-  <div class="right"><b>The floor:</b> the tool proposes; a human decides and runs the engine.<br>No finding originates in Algol except the deterministic collector rows, and a heuristic is never silently upgraded to verified.</div>
+  <div class="rule">The floor: the tool proposes; a human decides and runs the engine. <span class="a">No finding originates in Algol except the deterministic collector rows, and a heuristic is never silently upgraded to verified.</span></div>
+  <div class="note">your data: your own repository &#183; policy and record are plain files under version control &#183; Algol sends nothing on its own</div>
 </div>
 
 </body>
