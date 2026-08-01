@@ -118,8 +118,10 @@ def run_gate(root: Path, routing: dict, scanner: dict, changed: list[str],
     summary = {
         "changed_files": len(changed),
         "collected": collected,
+        "low_risk": router.is_low_risk(recommendations) and not new_ids,
         "recommendations": [
-            {"engine": r["engine"], "escalation": r["escalation"], "paths": r["paths"]}
+            {"engine": r["engine"], "escalation": r["escalation"],
+             "paths": r["paths"], "reasons": r.get("reasons", [])}
             for r in recommendations["recommendations"]
         ],
         "new": sorted(new_ids),
@@ -133,16 +135,28 @@ def run_gate(root: Path, routing: dict, scanner: dict, changed: list[str],
 
 
 def _print_summary(summary: dict, record: Record, out: Path, wrote: bool,
-                   show_floor: bool = False) -> None:
+                   ctx: dict, show_floor: bool = False) -> None:
     e = sys.stderr
     by_id = record.by_id()
+    if summary.get("low_risk"):
+        print(f"gate: {summary['changed_files']} changed file(s); low-risk, nothing to review", file=e)
+        return
     print(f"gate: {summary['changed_files']} changed file(s); "
           f"collectors: {summary['collected']}", file=e)
     if summary["recommendations"]:
         print("gate: recommended engines (run these yourself):", file=e)
         for r in summary["recommendations"]:
+            if r["engine"] == "skip":
+                continue
             tag = " [escalated: undo-cost]" if r["escalation"] else ""
             print(f"  - {r['engine']}{tag}: {', '.join(r['paths']) or '(default)'}", file=e)
+            if r["engine"] in ("seclint", "brevlint"):
+                print("      (run by the gate)", file=e)
+                continue
+            cmd = router.command_for(r["engine"], r["paths"], ctx)
+            if cmd:
+                for ln in cmd.splitlines():
+                    print(f"      {ln}", file=e)
     # Signal first, prominently; the floor is a quiet count, never a peer.
     print(f"gate: {len(summary['new_signal'])} new finding(s) needing attention, "
           f"{len(summary['carried'])} carried "
@@ -227,7 +241,9 @@ def main(argv: list[str] | None = None) -> int:
     if not args.dry_run:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(record.to_json(), encoding="utf-8")
-    _print_summary(summary, record, out, wrote=not args.dry_run, show_floor=args.show_floor)
+    ctx = {"tools": str(Path(__file__).resolve().parent),
+           "compiled": str(args.compiled), "root": str(root)}
+    _print_summary(summary, record, out, wrote=not args.dry_run, ctx=ctx, show_floor=args.show_floor)
     return 0
 
 

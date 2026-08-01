@@ -48,8 +48,11 @@ Then it reports the run-over-run delta:
 
 The heavier engines (policy-review, `/code-review`, ultra, gauntlet) stay the
 human's to run from the recommendations; their output folds back in through
-reconcile like any other source. The floor holds: the tool proposes and runs
-only the deterministic collectors; a human decides and runs the engines.
+reconcile like any other source. The gate prints the copy-pasteable command
+under each recommended engine (collectors are marked "run by the gate", since it
+ran them), and on a low-risk change (matched nothing, no findings) it collapses
+to a single line. The floor holds: the tool proposes and runs only the
+deterministic collectors; a human decides and runs the engines.
 
 ```
 python skills/algol/tools/gate.py --base origin/main               # diff base..worktree

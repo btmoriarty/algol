@@ -105,6 +105,14 @@ class TestRouting(unittest.TestCase):
             self.assertIn("gauntlet", engines)
             self.assertTrue(engines["gauntlet"]["escalation"])
 
+    def test_low_risk_change_is_flagged(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = project(tmp)  # ROUTING has no catch-all, so a .txt matches nothing
+            (root / "notes.txt").write_text("just a note\n")
+            _, summary = gate.run_gate(root, ROUTING, SCANNER, ["notes.txt"], None)
+            self.assertTrue(summary["low_risk"])
+            self.assertEqual(summary["new"], [])
+
 
 class TestCli(unittest.TestCase):
     def test_main_writes_record(self) -> None:

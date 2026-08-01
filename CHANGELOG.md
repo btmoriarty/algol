@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.0 (2026-08-01)
+
+- Router emits copy-pasteable commands and is silent on low-risk changes. `router.py --format commands` renders each recommendation as the exact command to run, deepest first, with paths filled in: real one-liners for the collectors and policy-review, the slash command for `/code-review` and `ultra`, and a commented how-to for the external and composed engines (gauntlet, evidence-locked-uat, applying-formal-rigor). On a change that matched nothing and fell through to a `skip` default, it prints nothing to stdout and one `nothing to review` line to stderr, so wiring it into every diff stays near-zero cost. New reusable pieces: `command_for`, `is_low_risk`, `render_commands`. The gate uses them: it prints the command under each recommended engine (collectors marked "run by the gate") and short-circuits to one line on a low-risk diff. The floor is unchanged: commands to run, not run for you. Docs in `references/router.md`; 10 unittests. 180 tests total.
+
 ## 0.15.0 (2026-08-01)
 
 - Raise-to-verified loop. `skills/algol/tools/verify.py` makes reaching a higher tier a targeted, one-finding operation, the same two-step shape as policy-review. `prompt --finding <id>` assembles the verification request, pre-keyed to that finding (file, line, claim) so the answer correlates back, and states the discipline and output schema. `ingest out.json --finding <id>` folds the verifier's output into the record as a `--base` merge and reports the tier change: raised, unchanged, or a warning that the output did not address the finding. The tier ceilings hold: only evidence-locked-uat FAIL reaches `verified`; gauntlet reaches `model_corroborated`; the harness never invents a tier. `--engine {uat,gauntlet}`, `--dry-run`. This is the flip side of never upgrading silently: `verified` is reachable, but only through the deterministic verifier, one command in and one out. Docs in `references/verify.md`; 11 unittests. 170 tests total.

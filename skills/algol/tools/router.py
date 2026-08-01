@@ -105,12 +105,70 @@ def recommend(routing: dict, changed) -> dict:
     return {"change": changed, "recommendations": recs, "default_used": False, "note": NOTE}
 
 
+def command_for(engine: str, paths, ctx: dict) -> str | None:
+    """The copy-pasteable command to run an engine on paths, or None for skip.
+    ctx carries `tools`, `compiled`, `root` as strings. External or composed
+    engines get a commented how-to rather than a fake one-liner, because a human
+    runs them and then folds the result in."""
+    tools, compiled, root = ctx["tools"], ctx["compiled"], ctx["root"]
+    p = " ".join(paths)
+    if engine == "skip":
+        return None
+    if engine == "seclint":
+        return f"python {tools}/seclint.py --rules {compiled}/scanner-rules.json --root {root} {p}"
+    if engine == "brevlint":
+        return f"python {tools}/brevlint.py --rules {compiled}/scanner-rules.json --root {root} {p}"
+    if engine == "policy-review":
+        return f"python {tools}/policy_review.py prompt --review {compiled}/REVIEW.md --changed {p} --out prompt.txt"
+    if engine == "/code-review":
+        return f"/code-review {p}"
+    if engine == "ultra":
+        return f"/code-review ultra {p}"
+    if engine == "gauntlet":
+        return (f"# run gauntlet on: {p}\n"
+                f"# then: python {tools}/verify.py ingest <run>.json --finding <id> --engine gauntlet")
+    if engine == "evidence-locked-uat":
+        return (f"# run evidence-locked-uat on: {p}\n"
+                f"# then: python {tools}/verify.py ingest <result>.json --finding <id> --engine uat")
+    if engine == "applying-formal-rigor":
+        return (f"# run applying-formal-rigor on: {p}\n"
+                f"# then: python {tools}/reconcile.py --rigor <result>.json --base .algol/record.json --out .algol/record.json")
+    return f"# {engine}: run on {p}"
+
+
+def is_low_risk(result: dict) -> bool:
+    """True when the change matched nothing and fell through to a skip default:
+    the low-risk case the router should be silent about."""
+    recs = result.get("recommendations", [])
+    return bool(result.get("default_used")) and all(r["engine"] == "skip" for r in recs)
+
+
+def render_commands(result: dict, ctx: dict) -> str:
+    """Copy-pasteable command block for a recommendation, deepest first. Empty
+    string on a low-risk change, so wiring the router into every diff is quiet."""
+    if is_low_risk(result):
+        return ""
+    lines: list[str] = []
+    for r in result.get("recommendations", []):
+        cmd = command_for(r["engine"], r["paths"], ctx)
+        if cmd is None:
+            continue
+        tag = " [escalated: undo-cost]" if r.get("escalation") else ""
+        lines.append(f"# {r['engine']}{tag} ({', '.join(r.get('reasons', []))})")
+        lines.extend(cmd.splitlines())
+        lines.append("")
+    return ("\n".join(lines).rstrip() + "\n") if lines else ""
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="router: recommend how a change is reviewed.")
     parser.add_argument("--routing", type=Path, required=True, help="routing.json from the compiler")
     parser.add_argument("--changed", nargs="*", default=[], help="changed file paths")
     parser.add_argument("--changed-from", type=Path, default=None, help="file with one changed path per line")
-    parser.add_argument("--out", type=Path, default=None, help="write JSON here (default: stdout)")
+    parser.add_argument("--format", choices=("json", "commands"), default="json",
+                        help="json (default) or copy-pasteable commands, silent on a low-risk change")
+    parser.add_argument("--root", type=Path, default=None, help="project root for command rendering (default: inferred)")
+    parser.add_argument("--out", type=Path, default=None, help="write here (default: stdout)")
     args = parser.parse_args(argv)
 
     if not args.routing.is_file():
@@ -131,6 +189,22 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     result = recommend(routing, changed)
+
+    if args.format == "commands":
+        root = args.root or args.routing.resolve().parent.parent.parent
+        ctx = {"tools": str(Path(__file__).resolve().parent),
+               "compiled": str(args.routing.parent), "root": str(root)}
+        block = render_commands(result, ctx)
+        if not block.strip():
+            print("router: nothing to review (low-risk change)", file=sys.stderr)
+            return 0
+        if args.out is not None:
+            args.out.write_text(block, encoding="utf-8")
+            print(f"router: wrote commands to {args.out}", file=sys.stderr)
+        else:
+            sys.stdout.write(block)
+        return 0
+
     output = json.dumps(result, indent=2, sort_keys=True) + "\n"
     if args.out is not None:
         args.out.write_text(output, encoding="utf-8")
