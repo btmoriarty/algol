@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.11.0 (2026-08-01)
+
+- SARIF ingest: `skills/algol/tools/sarif_adapter.py` converts any tool's SARIF output (CodeQL, Semgrep, bandit, gitleaks, ruff) into the shared evidence-row shape, so reconcile folds a standard tool's findings into the record through the existing `--collector` path with no per-tool code. The SARIF `tool.driver.name` becomes the finding's source; `ruleId` becomes the claim, so two tools flagging the same rule at one spot merge into one finding with two observations. A result enters as `heuristic` like any collector row; nothing here reaches `verified`. Hygiene mirrors seclint: a result the tool already suppressed, a `pass`/`notApplicable` kind, a result below `--min-level`, or one with no physical location is dropped and counted on stderr, never guessed at. Fails closed on malformed SARIF. Doc in `skills/algol/references/sarif-ingest.md`; 24 unittests including a reconcile round-trip. Repositions Algol as a complement to the standard tools rather than a competing reviewer. 122 tests total.
+
 ## 0.10.0 (2026-07-23)
 
 - New `model_corroborated` evidence tier, between `inference` and `verified`. A gauntlet `[V]` anchor now normalizes to `model_corroborated`, not `verified`. Per-source ceilings cap the collectors at `heuristic`, applying-formal-rigor at `inference`, and gauntlet at `model_corroborated`, so only a deterministic verifier (an evidence-locked-uat FAIL) reaches `verified`. This closes the case where a model panel's own verdict read as `verified`. Changes in `record.py`, `gauntlet_adapter.py`, and `compose_adapter.py`, with a tier-ceiling test.

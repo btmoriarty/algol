@@ -9,6 +9,7 @@ decided. A heuristic is never silently upgraded to verified.
 | Route a change | `router.py --routing routing.json --changed <paths>` | A recommendation per matched standard, deep-tier escalation on undo-cost. Recommends; you run it |
 | Collect (brevity) | `brevlint.py --rules scanner-rules.json --root .` | Deterministic style and brevity evidence rows |
 | Collect (security) | `seclint.py --rules scanner-rules.json --root .` | CWE-tagged security evidence rows, secrets masked |
+| Ingest SARIF | `sarif_adapter.py results.sarif --out rows.json` | Any standard tool (CodeQL, Semgrep, bandit, gitleaks) as evidence rows, tool name as source |
 | Policy check | `policy_review.py prompt --review REVIEW.md --changed <files>` | A model-pass prompt; feed it to a model, then `ingest` the result |
 | Reconcile | `reconcile.py --collector rows.json [--gauntlet run.json] --out record.json` | One record, verified kept distinct from heuristic |
 | Deep tier | route to gauntlet, then `reconcile.py --gauntlet run-record.json` | Its verdict and Conflict Ledger fold into the record |
