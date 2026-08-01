@@ -6,7 +6,7 @@ table { border-collapse: collapse; width: 100%; font-size: 10px; }
 th, td { border: 1px solid #bbb; padding: 4px 6px; text-align: left; vertical-align: top; }
 code { font-family: ui-monospace, Menlo, monospace; font-size: 9.5px; }
 </style></head><body><h1>Algol cheat sheet</h1>
-<p>v0.10.0. Algol governs what gets reviewed and records what was
+<p>v0.16.0. Algol governs what gets reviewed and records what was
 decided. A heuristic is never silently upgraded to verified.</p>
 <table>
 <thead>
@@ -18,24 +18,34 @@ decided. A heuristic is never silently upgraded to verified.</p>
 </thead>
 <tbody>
 <tr>
+<td>Start</td>
+<td><code>init.py --root . --project NAME --compile</code></td>
+<td>The strong starter policy (auth, migrations, money, public API, infra, CI already routed) plus compiled artifacts</td>
+</tr>
+<tr>
 <td>Compile policy</td>
 <td><code>compile_policy.py .algol/policy.toml</code></td>
 <td>REVIEW.md, scanner-rules.json, routing.json, catalog.json</td>
 </tr>
 <tr>
+<td>Gate a change</td>
+<td><code>gate.py --base main</code></td>
+<td>Route + collect the changed files + reconcile into the record: new vs carried, prior dispositions preserved. Silent on a low-risk diff</td>
+</tr>
+<tr>
 <td>Route a change</td>
 <td><code>router.py --routing routing.json --changed &lt;paths&gt;</code></td>
-<td>A recommendation per matched standard, deep-tier escalation on undo-cost. Recommends; you run it</td>
+<td>A recommendation per matched standard, deep-tier escalation on undo-cost. <code>--format commands</code> for copy-pasteable commands, silent on low-risk</td>
 </tr>
 <tr>
-<td>Collect (brevity)</td>
-<td><code>brevlint.py --rules scanner-rules.json --root .</code></td>
-<td>Deterministic style and brevity evidence rows</td>
+<td>Collect (security/brevity)</td>
+<td><code>seclint.py</code> / <code>brevlint.py --rules scanner-rules.json --root .</code></td>
+<td>Deterministic evidence rows (CWE-tagged for seclint, secrets masked). The silent floor: never a peer of a real engine's finding</td>
 </tr>
 <tr>
-<td>Collect (security)</td>
-<td><code>seclint.py --rules scanner-rules.json --root .</code></td>
-<td>CWE-tagged security evidence rows, secrets masked</td>
+<td>Ingest SARIF</td>
+<td><code>sarif_adapter.py results.sarif --out rows.json</code></td>
+<td>Any standard tool (CodeQL, Semgrep, bandit, gitleaks) as evidence rows, tool name as source</td>
 </tr>
 <tr>
 <td>Policy check</td>
@@ -48,9 +58,14 @@ decided. A heuristic is never silently upgraded to verified.</p>
 <td>One record, verified kept distinct from heuristic</td>
 </tr>
 <tr>
+<td>Raise to verified</td>
+<td><code>verify.py prompt --finding &lt;id&gt;</code>, then <code>verify.py ingest out.json --finding &lt;id&gt;</code></td>
+<td>Raise one finding via the verifier: uat FAIL to verified, gauntlet to model_corroborated. Never invents a tier</td>
+</tr>
+<tr>
 <td>Deep tier</td>
 <td>route to gauntlet, then <code>reconcile.py --gauntlet run-record.json</code></td>
-<td>Its verdict and Conflict Ledger fold into the record</td>
+<td>Its verdict and conditions fold into the record</td>
 </tr>
 <tr>
 <td>Guard and report</td>
@@ -59,9 +74,7 @@ decided. A heuristic is never silently upgraded to verified.</p>
 </tr>
 </tbody>
 </table>
-<p>All tools are stdlib-only Python 3.11+. Full flags: <code>--help</code> on any tool, or the
-<code>references/</code> doc for each component.</p>
-<p>Your data: your own repository. Policy and the record are plain files under
-version control. Algol sends nothing on its own.</p>
-<p>The floor: the tool proposes; a human decides and runs the engine. No finding
-originates in Algol except the deterministic collector rows.</p></body></html>
+<p>All tools are stdlib-only Python 3.11+. Full flags: <code>--help</code> on any tool, or the <code>references/</code> doc for each component.</p>
+<p>Your data: your own repository. Policy and the record are plain files under version control. Algol sends nothing on its own.</p>
+<p>The floor: the tool proposes; a human decides and runs the engine. No finding originates in Algol except the deterministic collector rows.</p>
+</body></html>
