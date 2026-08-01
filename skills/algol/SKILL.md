@@ -19,6 +19,7 @@ v0.9.0, local scope. See `docs/DESIGN.md` for the full design and each `referenc
 - router: recommends skip, a collector, policy-review, `/code-review`, or `ultra` from policy and undo-cost, and escalates to the deep tier on undo-cost. Recommends, never auto-launches. `tools/router.py`, `references/router.md`.
 - reconcile and the record: merges findings into one governed record, keeps verified distinct from heuristic, never upgrades silently, carries reopens-if on each disposition. `tools/reconcile.py`, `tools/record.py`, `references/reconcile-and-record.md`.
 - SARIF ingest: converts any standard tool's SARIF output (CodeQL, Semgrep, bandit, gitleaks, ruff) into evidence rows reconcile takes through `--collector`, with the tool name as the finding's source. `tools/sarif_adapter.py`, `references/sarif-ingest.md`.
+- The per-change gate: `changed.py` names a change's files from git; `gate.py` routes the change, runs the collectors on just those files, and reconciles into the record so prior dispositions survive and only new findings surface. `tools/changed.py`, `tools/gate.py`, `references/pr-gate.md`.
 - Deep tier: routes to gauntlet and consumes its run record. `tools/gauntlet_adapter.py`, `references/deep-tier.md`.
 - Composed axes: testing to evidence-locked-uat, efficiency to applying-formal-rigor. `tools/compose_adapter.py`, `references/composition.md`.
 - Hooks: a non-modifying reversibility guard and a collector reporter. `tools/hooks.py`, `references/hooks.md`.
