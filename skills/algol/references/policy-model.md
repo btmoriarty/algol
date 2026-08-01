@@ -9,6 +9,24 @@ Tool: `skills/algol/tools/compile_policy.py`. Stdlib only. Floor is Python 3.11+
 (`tomllib` in the standard library); on older Python it falls back to the `tomli`
 backport if installed.
 
+## Starting strong
+
+A cold first run is only worthless if the project starts from nothing, so Algol
+ships a strong default: `skills/algol/starter-policy.toml`. Its undo-cost globs
+already escalate the surfaces that recur across projects, the deep tier for the
+irreversible ones (data migrations and schema, auth and authz, secrets, money,
+the public API) and a human code review for the operational ones (infra, deploy,
+CI workflows, containers, IaC). `tools/init.py` drops it into a project:
+
+```
+python skills/algol/tools/init.py --root . --project myapp --compile
+```
+
+It writes `.algol/policy.toml` (refusing to clobber an existing one without
+`--force`), substitutes the project name, and with `--compile` produces the four
+artifacts. Defaults ship strict; the globs are broad on purpose, so trim them to
+what your repo actually has. Editing the policy is then a dated, reviewable diff.
+
 ## Schema
 
 ```toml

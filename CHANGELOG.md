@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0 (2026-08-01)
+
+- Strong starter policy, so a cold first run is useful. `skills/algol/starter-policy.toml` ships as the default: its undo-cost globs escalate the surfaces that recur across projects, the deep tier for the irreversible ones (migrations and schema, auth/authz, secrets, money, public API) and a human `/code-review` for the operational ones (infra, deploy, CI workflows, containers, IaC), with seclint/brevlint/policy-review standards over the usual code and docs. `skills/algol/tools/init.py` drops it into a project (`--project` name, `--compile` to build artifacts, `--force` to overwrite), refusing to clobber an existing policy. Defaults ship strict; the globs are broad and meant to be trimmed. Docs in `references/policy-model.md`; README quick start now leads with `init` + `gate`. 16 unittests (starter compiles, routes the risk paths, init behavior).
+- Fix: `router._norm` used `str.lstrip("./")`, which ate the leading dot of a dotfile path (`.github/workflows/ci.yml` became `github/...`) so dotfile globs never matched. It now strips only a leading `./` prefix. The starter's CI-workflow escalation depends on this.
+- 159 tests total.
+
 ## 0.13.0 (2026-08-01)
 
 - Silent floor for the native collectors. A finding whose every observation comes from seclint or brevlint is now labeled `floor` (`record.py`: `FLOOR_SOURCES`, `Finding.is_floor`, serialized as `"floor"` in each finding; `Record.partition_floor()`), so a deterministic lint row never presents as a peer of a real engine's finding. The label is by source, not tier: a Semgrep finding imported via SARIF is heuristic like a collector row but is real signal, so it is not floor. Provenance is unchanged; this is presentation only, and the label flips to false the moment any other source touches the line. The gate splits its delta into `new_signal` and `new_floor`, surfaces signal, and reports the floor as a quiet count (`--show-floor` to list). Fixes the case where a collector row (e.g. an MD5-as-sort-key) read as an Algol finding. Docs in `references/collectors.md`, `references/reconcile-and-record.md`, `references/pr-gate.md`; 8 unittests. 143 tests total.

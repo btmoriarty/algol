@@ -46,7 +46,15 @@ NOTE = "Recommendation only. Algol does not launch an engine; a human runs it."
 
 
 def _norm(paths) -> list[str]:
-    return [p.replace("\\", "/").lstrip("./") if p not in ("", ".") else p for p in paths]
+    # Strip a leading "./" prefix only. Not str.lstrip("./"), which would eat the
+    # leading dot of a dotfile path like ".github/workflows/ci.yml".
+    out = []
+    for p in paths:
+        p = p.replace("\\", "/")
+        if p.startswith("./"):
+            p = p[2:]
+        out.append(p)
+    return out
 
 
 def recommend(routing: dict, changed) -> dict:

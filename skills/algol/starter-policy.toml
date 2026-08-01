@@ -1,0 +1,74 @@
+# Algol starter policy: a strong default so the first run is useful.
+#
+# Drop it in and compile:
+#   python skills/algol/tools/init.py --root . --project NAME
+#   python skills/algol/tools/compile_policy.py .algol/policy.toml
+#
+# This is meant to be edited. The globs below cover the high-undo-cost surfaces
+# that recur across projects, so the router escalates the right things before you
+# have tuned anything. Defaults ship strict; trim them to what your repo has. A
+# change to this file is a dated, reviewable diff of how the project reviews.
+
+[meta]
+version = "0"
+project = "__PROJECT__"
+
+# ---------------------------------------------------------------------------
+# Undo-cost routing: where a wrong call is expensive to undo. A change touching
+# any path in a class escalates to the named engine on its own, no other flag
+# needed. Reversibility routing: the harder to undo, the deeper the look.
+# ---------------------------------------------------------------------------
+
+# Hard to undo: data shape, who-can-do-what, secrets, and money. Deep tier.
+[[undo_cost]]
+class = "irreversible"
+escalate_to = "gauntlet"
+paths = [
+  # data migrations and schema
+  "**/migrations/**", "**/migrate/**", "**/alembic/**", "**/*.sql", "db/**",
+  # auth, authz, sessions, crypto, secrets
+  "**/auth*/**", "**/*auth*.*", "**/security/**", "**/crypto/**",
+  "**/*password*.*", "**/*secret*.*", "**/*token*.*", "**/*session*.*",
+  # money
+  "**/billing/**", "**/payment*/**", "**/*payment*.*", "**/*checkout*.*", "**/*invoice*.*",
+  # the public API surface
+  "**/api/public/**", "**/public_api/**", "**/*openapi*.*", "**/*swagger*.*",
+]
+
+# Operationally risky: infra, deploy, CI, containers. A human code review.
+[[undo_cost]]
+class = "operational"
+escalate_to = "/code-review"
+paths = [
+  "**/*Dockerfile*", "**/docker-compose*.*",
+  "**/deploy/**", "**/deployment/**", "**/.github/workflows/**",
+  "**/terraform/**", "**/*.tf", "**/k8s/**", "**/helm/**", "**/charts/**",
+]
+
+# ---------------------------------------------------------------------------
+# Standards: which axis each change is reviewed for, and the engine that covers
+# it. seclint and brevlint are Algol's deterministic floor; policy-review is the
+# model pass that catches what a scanner cannot. Standards are open-ended; add
+# your own axes (testing, efficiency) and route them to composed disciplines.
+# ---------------------------------------------------------------------------
+
+[[standard]]
+axis = "security"
+engine = "seclint"
+paths = [
+  "**/*.py", "**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx",
+  "**/*.go", "**/*.rb", "**/*.java", "**/*.php", "**/*.rs", "**/*.cs", "**/*.c", "**/*.cpp",
+]
+
+[[standard]]
+axis = "brevity"
+engine = "brevlint"
+paths = ["**/*.md", "docs/**"]
+
+[[standard]]
+axis = "policy"
+engine = "policy-review"
+paths = ["**"]
+
+[router]
+default = "skip"

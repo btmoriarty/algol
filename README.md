@@ -27,13 +27,22 @@ Clone the repo and run the tools directly (Python 3.11+, standard library only).
 Quick start:
 
 ```
+python skills/algol/tools/init.py --root . --project myapp --compile
+python skills/algol/tools/gate.py --base main
+```
+
+`init` drops the strong starter policy, which already routes the high-undo-cost
+surfaces (auth, migrations, money, public API, infra, CI) to a deeper engine, so
+the first run is useful before you have tuned anything. `gate` runs a change
+through it. The lower-level tools compose too:
+
+```
 python skills/algol/tools/compile_policy.py .algol/policy.toml
 python skills/algol/tools/router.py --routing .algol/compiled/routing.json --changed src/a.py
-python skills/algol/tools/brevlint.py --rules .algol/compiled/scanner-rules.json --root . --out rows.json
 python skills/algol/tools/reconcile.py --collector rows.json --out .algol/record.json
 ```
 
-An example policy is at [docs/policy.example.toml](docs/policy.example.toml).
+The starter is at [skills/algol/starter-policy.toml](skills/algol/starter-policy.toml); a smaller illustrative example is at [docs/policy.example.toml](docs/policy.example.toml).
 
 ## Data handling
 
