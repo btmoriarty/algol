@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>What Algol does, in plain terms</title>
+<style>html,body{margin:0;background:#0a0e1a;padding:28px 16px;}</style>
+</head>
+<body>
+<div id="algol-lay">
+<style>
+#algol-lay{
+  --bg:#0d1020; --panel:#141a30; --panel2:#1b2340; --line:#2a3560;
+  --ink:#eef1fb; --dim:#9aa6c8; --amber:#f5b942; --grn:#57d38c; --red:#ef6a6a; --blue:#6ea8ff;
+  font-family:ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  color:var(--ink); background:var(--bg); border:1px solid var(--line);
+  border-radius:16px; max-width:860px; margin:0 auto; overflow:hidden;
+  box-shadow:0 10px 40px rgba(0,0,0,.35);}
+#algol-lay *{box-sizing:border-box}
+.hd{padding:22px 26px 16px;border-bottom:1px solid var(--line);
+  background:radial-gradient(120% 150% at 12% -30%,rgba(245,185,66,.16),transparent 60%);}
+.hd .kick{font-size:11px;color:var(--amber);letter-spacing:1.6px;text-transform:uppercase;font-weight:700}
+.hd h1{margin:8px 0 4px;font-size:23px}
+.hd p{margin:0;color:var(--dim);font-size:13.5px;line-height:1.5}
+.flow{padding:16px 22px 6px;display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:40px 1fr;gap:14px;position:relative;padding:6px 0}
+.step:not(:last-child)::after{content:"";position:absolute;left:19px;top:46px;bottom:-8px;width:2px;
+  background:linear-gradient(var(--line),var(--line));}
+.num{width:40px;height:40px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:20px;z-index:1}
+.bd{padding:2px 0}
+.bd h3{margin:0 0 3px;font-size:15.5px}
+.bd p{margin:0;color:var(--dim);font-size:13px;line-height:1.5}
+.bd .plain{color:var(--amber);font-weight:600}
+.ladder{margin:8px 22px 4px;border:1px solid rgba(245,185,66,.3);border-radius:12px;
+  background:linear-gradient(180deg,rgba(245,185,66,.06),transparent);padding:14px 16px}
+.ladder .lab{font-size:10px;letter-spacing:1.3px;text-transform:uppercase;font-weight:700;color:var(--amber);margin-bottom:9px}
+.rungs{display:flex;gap:8px;flex-wrap:wrap}
+.rung{flex:1;min-width:150px;border-radius:9px;padding:9px 11px;font-size:12px;line-height:1.4}
+.rung b{display:block;font-size:12.5px;margin-bottom:2px}
+.r1{background:rgba(239,106,106,.10);border:1px solid rgba(239,106,106,.35)} .r1 b{color:var(--red)}
+.r2{background:rgba(245,185,66,.10);border:1px solid rgba(245,185,66,.35)} .r2 b{color:var(--amber)}
+.r3{background:rgba(87,211,140,.10);border:1px solid rgba(87,211,140,.4)} .r3 b{color:var(--grn)}
+.rung .d{color:var(--dim)}
+.rule{margin:12px 22px 22px;padding:13px 16px;border:1px solid var(--line);border-radius:12px;
+  background:var(--panel2);font-size:13.5px;line-height:1.55}
+.rule b{color:var(--amber)}
+</style>
+
+<div class="hd">
+  <div class="kick">What Algol does, in plain terms</div>
+  <h1>It runs the review, so you can trust it</h1>
+  <p>Algol does not review your code and it does not replace your review tools. It runs the process around them, so a change gets the right amount of scrutiny and every decision is honest and remembered.</p>
+</div>
+
+<div class="flow">
+  <div class="step"><div class="num">&#9998;</div><div class="bd">
+    <h3>A change comes in</h3>
+    <p>Someone edits the code. A migration, a password check, a typo, anything.</p>
+  </div></div>
+
+  <div class="step"><div class="num">&#9878;</div><div class="bd">
+    <h3>Algol matches the effort to the risk</h3>
+    <p><span class="plain">Hard to undo gets a hard look.</span> A change that could break something expensive, like deleting data or touching payments, is sent for a deep review on its own. A typo is not. You stop guessing how carefully to check.</p>
+  </div></div>
+
+  <div class="step"><div class="num">&#9881;</div><div class="bd">
+    <h3>It runs the reviewers you already use</h3>
+    <p><span class="plain">No new reviewer to learn.</span> Algol points each change at the review tools your team already runs, and collects what they find.</p>
+  </div></div>
+
+  <div class="step"><div class="num">&#9636;</div><div class="bd">
+    <h3>Every finding lands in one honest list</h3>
+    <p><span class="plain">Checked is never confused with guessed.</span> Instead of scattered results, you get one record, and each finding is labeled by how sure it is.</p>
+  </div></div>
+
+  <div class="step"><div class="num">&#10003;</div><div class="bd">
+    <h3>You decide, and the reason sticks</h3>
+    <p><span class="plain">Nothing is decided for you.</span> A person makes the call. If you wave something through, Algol saves why, and the one thing that would make it worth another look.</p>
+  </div></div>
+</div>
+
+<div class="ladder">
+  <div class="lab">How sure is each finding?</div>
+  <div class="rungs">
+    <div class="rung r1"><b>A guess</b><span class="d">A scanner spotted a pattern. Worth a look, not a verdict.</span></div>
+    <div class="rung r2"><b>Backed up</b><span class="d">A review panel agreed. Stronger, but still judgment.</span></div>
+    <div class="rung r3"><b>Proven</b><span class="d">A test or check confirmed it. Only this is called proven.</span></div>
+  </div>
+</div>
+
+<div class="rule">
+  <b>The one rule underneath it all:</b> a guess is never quietly upgraded to proven. Two tools agreeing is still not proof. That is the whole point, you can trust the label, because Algol will not overstate it.
+</div>
+</div>
+</body>
+</html>

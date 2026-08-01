@@ -27,6 +27,8 @@ Applied and verified locally (98 tests green):
 - [x] v1.1 task 1: the `model_corroborated` tier and per-source ceilings. A gauntlet `[V]` reads `model_corroborated`; only a deterministic verifier reaches `verified`.
 - [x] v1.1 task 2, part one: the golden-path executable regression (`tests/test_golden_path.py`, `tests/fixtures/gaunt.json`).
 - [x] Docs synced to `model_corroborated`: `README.md`, `docs/one-pager.md`, `docs/one-pager.html`, `docs/OVERVIEW.md`, `docs/CHEATSHEET.md`.
+
+Doc-sync set (keep current every feature): `README.md`, `docs/one-pager.md`, `docs/one-pager.html`, `docs/OVERVIEW.md`, `docs/what-algol-does.html`, `docs/CHEATSHEET.md`. The cheat sheet render (`docs/CHEATSHEET.html`, `docs/CHEATSHEET.pdf`) happens once, at the gate, when the whole update batch is complete and tested, not per feature.
 - [x] Cheat sheet rendered: `docs/CHEATSHEET.html` and `docs/CHEATSHEET.pdf`.
 - [x] `VERSION` bumped to `0.10.0`; dated `CHANGELOG.md` entry added.
 
