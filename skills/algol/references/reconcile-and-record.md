@@ -17,6 +17,10 @@ Observation that produced it and, once a human decides, a Disposition.
 - Finding.status is the highest tier among its observations. This is honest
   because a tier comes from a source, never from merging: a finding is
   "verified" only when a source that verified it says so.
+- Finding.floor is a derived label: true when every observation is from a native
+  collector (seclint, brevlint). It is a presentation aid, not a tier, so a
+  reader can keep the deterministic floor out of the way of a real engine's
+  finding. It flips to false the moment any other source weighs in.
 - Disposition: state (accept, suppress, defer), rationale, and reopens-if, the
   one to three conditions that would reopen the decision (A14). A disposition
   with no reopens-if is allowed but flagged by `dispositions_without_reopens`,

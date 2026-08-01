@@ -74,3 +74,15 @@ python skills/algol/tools/seclint.py FILE --rules-file extra-rules.json
 The reasoning-heavy security judgment (business-logic flaws, missing controls,
 attack-path chaining) is not in the collector. It routes to a model pass, so the
 collector never claims a verdict it cannot derive.
+
+## The floor
+
+seclint and brevlint are the review floor: cheap, deterministic, deliberately
+weak, and meant to grow. A finding whose every observation comes from a native
+collector is labeled `floor` in the record (`record.py`, `FLOOR_SOURCES`), and
+consumers keep it out of the way of a real engine's finding rather than showing
+a lint nit as a peer. The gate reports floor findings as a quiet count, not in
+the signal list. The label is by source, not tier: a Semgrep finding imported
+via SARIF is heuristic like a collector row, but it is real signal, so it is not
+floor. Provenance is never dropped, the finding is only demoted in presentation;
+the moment a real engine also touches that line, the finding stops being floor.

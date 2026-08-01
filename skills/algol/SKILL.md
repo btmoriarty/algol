@@ -14,7 +14,7 @@ v0.9.0, local scope. See `docs/DESIGN.md` for the full design and each `referenc
 ## The pieces
 
 - Policy model: versioned, path-scoped standards in `.algol/policy.toml`, compiled into review instructions, scanner rules, routing criteria, and a catalog. `tools/compile_policy.py`, `references/policy-model.md`.
-- Evidence collectors: seclint (security) and brevlint (style and brevity), deterministic, emitting structured evidence rows. `tools/seclint.py`, `tools/brevlint.py`, `references/collectors.md`.
+- Evidence collectors: seclint (security) and brevlint (style and brevity), deterministic, emitting structured evidence rows. They are the silent floor: a finding from collectors alone is labeled `floor` and demoted in presentation, never shown as a peer of a real engine's finding. `tools/seclint.py`, `tools/brevlint.py`, `references/collectors.md`.
 - policy-review: a model-pass harness that checks a change against the project's own standards, not a general bug hunt. `tools/policy_review.py`, `references/policy-review.md`.
 - router: recommends skip, a collector, policy-review, `/code-review`, or `ultra` from policy and undo-cost, and escalates to the deep tier on undo-cost. Recommends, never auto-launches. `tools/router.py`, `references/router.md`.
 - reconcile and the record: merges findings into one governed record, keeps verified distinct from heuristic, never upgrades silently, carries reopens-if on each disposition. `tools/reconcile.py`, `tools/record.py`, `references/reconcile-and-record.md`.

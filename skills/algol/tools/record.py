@@ -35,6 +35,13 @@ TIER_RANK = {t: i for i, t in enumerate(TIERS)}
 
 DISPOSITION_STATES = ("accept", "suppress", "defer")
 
+# The Algol-native deterministic collectors. Their rows are the review floor: a
+# cheap, mechanical signal, deliberately weak and meant to grow. A finding whose
+# every observation comes from a floor source is "floor", so a reader (and the
+# gate) can keep it out of the way of a real engine's finding instead of showing
+# a lint nit as a peer. This is a presentation label; provenance is still kept.
+FLOOR_SOURCES = ("seclint", "brevlint")
+
 
 @dataclass(frozen=True)
 class Observation:
@@ -84,6 +91,13 @@ class Finding:
             return "hypothesis"
         return max((o.tier for o in self.observations), key=lambda t: TIER_RANK[t])
 
+    @property
+    def is_floor(self) -> bool:
+        """True when every observation is from a native collector, so the finding
+        is the deterministic floor and no real engine has weighed in. A finding
+        with no observations is not floor (it is a bare hypothesis)."""
+        return bool(self.observations) and all(o.source in FLOOR_SOURCES for o in self.observations)
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -91,6 +105,7 @@ class Finding:
             "line": self.line,
             "claim": self.claim,
             "status": self.status,
+            "floor": self.is_floor,
             "observations": [asdict(o) for o in sorted(self.observations, key=_obs_key)],
             "disposition": asdict(self.disposition) if self.disposition else None,
         }
@@ -107,6 +122,13 @@ class Record:
 
     def by_id(self) -> dict[str, Finding]:
         return {f.id: f for f in self.findings}
+
+    def partition_floor(self) -> tuple[list[Finding], list[Finding]]:
+        """(signal, floor): findings a real engine touched vs deterministic-floor
+        only. Lets a consumer surface signal and keep the floor out of the way."""
+        signal = [f for f in self.findings if not f.is_floor]
+        floor = [f for f in self.findings if f.is_floor]
+        return signal, floor
 
     def to_json(self) -> str:
         obj = {

@@ -110,6 +110,10 @@ def run_gate(root: Path, routing: dict, scanner: dict, changed: list[str],
         fid for fid in carried_disposed
         if (after[fid].file, after[fid].line, after[fid].claim) in run_keys
     ]
+    # Split new findings into signal (a real engine touched them) and floor (the
+    # native collectors only). The floor is reported quietly, never as a peer.
+    new_signal = [fid for fid in new_ids if not after[fid].is_floor]
+    new_floor = [fid for fid in new_ids if after[fid].is_floor]
 
     summary = {
         "changed_files": len(changed),
@@ -119,6 +123,8 @@ def run_gate(root: Path, routing: dict, scanner: dict, changed: list[str],
             for r in recommendations["recommendations"]
         ],
         "new": sorted(new_ids),
+        "new_signal": sorted(new_signal),
+        "new_floor": sorted(new_floor),
         "carried": sorted(carried_ids),
         "carried_with_disposition": sorted(carried_disposed),
         "reappeared_disposed": sorted(reappeared),
@@ -126,8 +132,10 @@ def run_gate(root: Path, routing: dict, scanner: dict, changed: list[str],
     return record, summary
 
 
-def _print_summary(summary: dict, record: Record, out: Path, wrote: bool) -> None:
+def _print_summary(summary: dict, record: Record, out: Path, wrote: bool,
+                   show_floor: bool = False) -> None:
     e = sys.stderr
+    by_id = record.by_id()
     print(f"gate: {summary['changed_files']} changed file(s); "
           f"collectors: {summary['collected']}", file=e)
     if summary["recommendations"]:
@@ -135,13 +143,24 @@ def _print_summary(summary: dict, record: Record, out: Path, wrote: bool) -> Non
         for r in summary["recommendations"]:
             tag = " [escalated: undo-cost]" if r["escalation"] else ""
             print(f"  - {r['engine']}{tag}: {', '.join(r['paths']) or '(default)'}", file=e)
-    print(f"gate: {len(summary['new'])} new finding(s), "
+    # Signal first, prominently; the floor is a quiet count, never a peer.
+    print(f"gate: {len(summary['new_signal'])} new finding(s) needing attention, "
           f"{len(summary['carried'])} carried "
           f"({len(summary['carried_with_disposition'])} with your prior disposition preserved)",
           file=e)
+    for fid in summary["new_signal"]:
+        f = by_id[fid]
+        print(f"  - {f.file}:{f.line} {f.claim} [{f.status}]", file=e)
+    if summary["new_floor"]:
+        print(f"gate: + {len(summary['new_floor'])} new floor finding(s) from the native "
+              f"collectors (deterministic, lowest signal"
+              + ("" if show_floor else "; --show-floor to list") + ")", file=e)
+        if show_floor:
+            for fid in summary["new_floor"]:
+                f = by_id[fid]
+                print(f"    · {f.file}:{f.line} {f.claim}", file=e)
     if summary["reappeared_disposed"]:
         print("gate: a disposed finding fired again; re-check its reopens-if:", file=e)
-        by_id = record.by_id()
         for fid in summary["reappeared_disposed"]:
             f = by_id[fid]
             conds = "; ".join(f.disposition.reopens_if) if f.disposition else ""
@@ -164,6 +183,7 @@ def main(argv: list[str] | None = None) -> int:
                         help="record to merge into and update (created if absent)")
     parser.add_argument("--out", type=Path, default=None, help="where to write (default: the --record path)")
     parser.add_argument("--dry-run", action="store_true", help="do not write the record")
+    parser.add_argument("--show-floor", action="store_true", help="list the native-collector floor findings, not just count them")
     args = parser.parse_args(argv)
 
     routing_path = args.compiled / "routing.json"
@@ -207,7 +227,7 @@ def main(argv: list[str] | None = None) -> int:
     if not args.dry_run:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(record.to_json(), encoding="utf-8")
-    _print_summary(summary, record, out, wrote=not args.dry_run)
+    _print_summary(summary, record, out, wrote=not args.dry_run, show_floor=args.show_floor)
     return 0
 
 

@@ -33,7 +33,12 @@ to do on its own, and recommends the rest:
 
 Then it reports the run-over-run delta:
 
-- **new**: findings not in the prior record.
+- **new**: findings not in the prior record, split into:
+  - **new_signal**: a real engine touched them. These are what the gate surfaces.
+  - **new_floor**: native-collector-only findings (the silent floor). Reported as
+    a quiet count, never as a peer of a signal finding; `--show-floor` lists them.
+    Since the gate itself runs only the collectors, its own new findings are all
+    floor; signal arrives when you run a recommended engine and reconcile it in.
 - **carried**: findings already in the record, kept with their decision.
 - **carried_with_disposition**: of those, the ones a human already decided; the
   decision is preserved untouched.
