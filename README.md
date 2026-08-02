@@ -2,7 +2,7 @@
 
 A project-controlled policy, routing, and governance layer that sits above code-review engines rather than being one. Algol reviews nothing itself. It reads the project's versioned review standards, decides which engine handles a given change, reconciles every engine's findings into one record without silently upgrading a heuristic to verified, and preserves each human decision with the conditions that would reopen it. Category: ReviewOps for Claude Code.
 
-Status: v0.10.0, local scope. The design of record is [docs/DESIGN.md](docs/DESIGN.md); the acceptance record is [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
+Status: v0.16.0, local scope. The design of record is [docs/DESIGN.md](docs/DESIGN.md); the acceptance record is [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
 ## Who it is for
 
