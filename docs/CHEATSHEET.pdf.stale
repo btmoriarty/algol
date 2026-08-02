@@ -1,0 +1,9 @@
+PENDING: re-render docs/CHEATSHEET.pdf.
+
+The committed docs/CHEATSHEET.pdf is stale. The HTML changed (TAIS-poster
+style: Archivo title, poster palette, and the tier-color fix) and the PDF has
+not been re-rendered yet.
+
+To fix: open docs/CHEATSHEET.html in a browser, Print, Save as PDF, Letter
+landscape, background graphics on, save over docs/CHEATSHEET.pdf. Then delete
+this file.
