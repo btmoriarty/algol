@@ -2,7 +2,7 @@
 
 **Review control plane for Claude Code.** v0.10.0, local scope.
 
-Algol is the policy, evidence, and decision layer around your Claude Code reviews. It does not perform a general-purpose bug hunt. It reads your versioned review standards, recommends a review depth per change by policy and undo-cost, reconciles findings from supported sources into one record without ever promoting a heuristic to verified, and keeps each human decision with the conditions that would reopen it. The rule everything follows from: a source supplies the strength, Algol preserves it and never silently upgrades a heuristic to verified, and the human decides.
+Algol is the policy, evidence, and decision layer around your Claude Code reviews. It does not perform a general-purpose bug hunt. It reads your versioned review standards, recommends a review depth per change by policy and undo-cost, reconciles findings from supported sources into one record without ever promoting a heuristic to verified, and keeps each human decision with the conditions that would reopen it. The rule everything follows from: a source supplies the strength, Algol preserves it and never upgrades a heuristic to verified without notice, and the human decides.
 
 **Who it is for:** a team on Claude Code running more than one review tool, on changes costly to reverse, such as security, infrastructure, permissions, and data migrations. A solo weekend project will not get much from it.
 

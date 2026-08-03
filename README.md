@@ -1,6 +1,6 @@
 # Algol
 
-A project-controlled policy, routing, and governance layer that sits above code-review engines rather than being one. Algol reviews nothing itself. It reads the project's versioned review standards, decides which engine handles a given change, reconciles every engine's findings into one record without silently upgrading a heuristic to verified, and preserves each human decision with the conditions that would reopen it. Category: ReviewOps for Claude Code.
+A project-controlled policy, routing, and governance layer that sits above code-review engines rather than being one. Algol reviews nothing itself. It reads the project's versioned review standards, decides which engine handles a given change, reconciles every engine's findings into one record, never upgrading a heuristic to verified without notice, and preserves each human decision with the conditions that would reopen it. Category: ReviewOps for Claude Code.
 
 Status: v0.16.0, local scope. The design of record is [docs/DESIGN.md](docs/DESIGN.md); the acceptance record is [docs/ACCEPTANCE.md](docs/ACCEPTANCE.md).
 
@@ -14,7 +14,7 @@ You stop deciding review depth by gut. Algol routes by policy and undo-cost, so 
 
 ## Why these defaults
 
-I built Algol around one rule: never silently upgrade a heuristic to verified. Every other default follows from it. Findings carry their source and their verification status, kept distinct. The router recommends and never auto-launches, so a human runs the engine. The deep tier routes out to gauntlet rather than reinventing a panel, because a reviewer worth trusting is one that derives its verdict rather than asserting it. Standards are open-ended: security, efficiency, and brevity are examples, not a fixed spine. You declare what your project cares about in `.algol/policy.toml` and scope it by path. To customize, edit that file; a change to how you review is then a dated, reviewable diff.
+I built Algol around one rule: never upgrade a heuristic to verified without notice. Every other default follows from it. Findings carry their source and their verification status, kept distinct. The router recommends and never auto-launches, so a human runs the engine. The deep tier routes out to gauntlet rather than reinventing a panel, because a reviewer worth trusting is one that derives its verdict rather than asserting it. Standards are open-ended: security, efficiency, and brevity are examples, not a fixed spine. You declare what your project cares about in `.algol/policy.toml` and scope it by path. To customize, edit that file; a change to how you review is then a dated, reviewable diff.
 
 ## Why this exists
 

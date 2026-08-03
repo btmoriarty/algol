@@ -1,7 +1,7 @@
 # Algol cheat sheet
 
 v0.16.0. Algol governs what gets reviewed and records what was
-decided. A heuristic is never silently upgraded to verified.
+decided. A heuristic is never upgraded to verified without notice.
 
 | Step | Command | What you get |
 |------|---------|--------------|
