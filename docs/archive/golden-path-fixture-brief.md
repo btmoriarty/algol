@@ -1,5 +1,7 @@
 # Algol v1.1 task 2: the golden-path fixture, build brief and test
 
+> Archived build brief, kept as design history. Part one, the executable regression, is applied as `tests/test_golden_path.py`. Part two, the document binding, was not built. The status text below is as written at the time.
+
 Draft for review, not yet applied to the repo. This has two parts, and only the first is drafted here:
 
 1. **An executable regression** for the golden-path values. It runs the real tools and fails when their commands, streams, fields, or values diverge from the test expectations. This is drafted and verified below.

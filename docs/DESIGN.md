@@ -1,6 +1,6 @@
 # Algol v3 brief (ReviewOps control plane)
 
-Status: draft, 2026-07-22. Supersedes the v2 suite brief. Write to this model before any code. Inputs folded in from docs/algol-v3-inputs.md; every item there is addressed or declined below. Scope decisions settled with Brian on 2026-07-22 are marked SETTLED.
+Status: design of record, written 2026-07-22 before any code and kept as it was then; the shipped tool is described in docs/OVERVIEW.md. It superseded an earlier v2 suite brief. Inputs came from an internal working notes file (not published), and every item there is addressed or declined below. Scope decisions settled on 2026-07-22 are marked SETTLED.
 
 ## What Algol is
 
@@ -104,16 +104,16 @@ Algol composes with the ecosystem and builds only the differentiated part. The w
 
 ## Open items carried
 
-- Repo and token names. Proposed: github.com/btmoriarty/algol; confirm before repo creation.
+- (CLOSED) Repo name: github.com/btmoriarty/algol.
 - (CLOSED 2026-07-22) Deep-tier routing: full gauntlet, no native arbitrator in v1. See Deep tier.
 
-## Inputs ledger (from docs/algol-v3-inputs.md)
+## Inputs ledger
 
 - A12 lean-blind adversary: satisfied by routing to gauntlet, not Algol-built (Deep tier).
 - A13 reversibility routing: addressed (Router).
 - A14 reopens-if: addressed (Governed record).
-- A15 calibration overlap: not Algol; belongs to row 4, noted only.
-- A16 dogfood a decision gate: meta, out of scope for the brief; left in QUEUE.md as optional.
+- A15 calibration overlap: outside Algol, noted only.
+- A16 dogfood a decision gate: meta, out of scope for the brief; left as optional.
 - epistemic-skills compose-not-rebuild: addressed (Composition), the single decision made.
 - Testing axis to evidence-locked-uat: addressed.
 - Efficiency to applying-formal-rigor lens 4: addressed.

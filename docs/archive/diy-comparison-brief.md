@@ -1,5 +1,7 @@
 # Algol v1.1 task 3: the DIY comparison, build brief and harness
 
+> Archived build brief, kept as design history. Not applied. The comparison design it implements is `docs/diy-comparison-spec.md`. The status text below is as written at the time.
+
 Draft for review, not yet applied to the repo. This task compares a representative DIY result merger with Algol's reconciliation and record model. Both arms receive the same controlled engine-output fixtures. The harness measures structured governance behavior, not review quality, and covers the merge and record layer only.
 
 Validation run, 2026-07-23: the three tests in this draft passed in the stated throwaway environment with task 1 applied; the full repository suite has not yet been reported here. The engine outputs are controlled fixtures rather than review runs.
