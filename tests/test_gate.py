@@ -79,6 +79,27 @@ class TestPersistence(unittest.TestCase):
             self.assertEqual(disp.state, "suppress")
             self.assertEqual(disp.reopens_if, ["input becomes user-controlled"])
 
+    def test_disposition_follows_line_move_through_disk_round_trip(self) -> None:
+        # Regression: identity was (file, line, claim), so inserting one line
+        # above a suppressed finding brought it back as new and undecided.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = project(tmp)
+            (root / "a.py").write_text("x = eval(user_input)\n")
+            record1, _ = gate.run_gate(root, ROUTING, SCANNER, ["a.py"], None)
+            fid = record1.findings[0].id
+            rec.set_disposition(record1, fid, "suppress", "not user-controlled", ["input changes"])
+            saved = rec.Record.from_json(record1.to_json())
+
+            (root / "a.py").write_text("import math\n\nx = eval(user_input)\n")
+            record2, summary2 = gate.run_gate(root, ROUTING, SCANNER, ["a.py"], saved)
+
+            self.assertEqual(summary2["new"], [])
+            self.assertIn(fid, summary2["carried_with_disposition"])
+            moved = record2.by_id()[fid]
+            self.assertEqual(moved.line, 3)
+            self.assertEqual(moved.disposition.state, "suppress")
+            self.assertEqual(len(record2.findings), 1)
+
     def test_new_finding_on_second_run_is_new_old_is_carried(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = project(tmp)

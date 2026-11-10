@@ -12,9 +12,16 @@ the whole tool is built to protect:
   - Re-running against an existing record preserves the human dispositions and
     their reopens-if conditions, so the record persists across a repo's history.
 
-Correlation is exact: observations sharing (file, line, claim) are one finding;
-a collector's claim is its rule_id. Distinct claims on the same line stay
+Correlation: observations sharing (file, line, claim) are one finding; a
+collector's claim is its rule_id. Distinct claims on the same line stay
 distinct, rather than being over-merged.
+
+Line moves: when an observation's (file, line, claim) matches nothing in the
+base record, reconcile looks for a base finding with the same file and claim,
+not matched in place in this run, that carries an observation with identical
+non-empty evidence text. If one exists, the finding is re-anchored to the new
+line (nearest old line wins a tie) and keeps its id, observations, and
+disposition. Edited code is a new finding: changed evidence does not re-anchor.
 
 Floor: Python 3.11+, stdlib only (record.py is a sibling module).
 
@@ -40,6 +47,7 @@ from record import (  # noqa: E402
     Observation,
     Record,
     dispositions_without_reopens,
+    location_id,
 )
 from gauntlet_adapter import parse_run_record  # noqa: E402
 from compose_adapter import parse_uat, parse_rigor  # noqa: E402
@@ -74,6 +82,43 @@ def _same_observation(a: Observation, b: Observation) -> bool:
     return (a.source, a.tier, a.message, a.evidence) == (b.source, b.tier, b.message, b.evidence)
 
 
+def _reanchor(findings: dict[Key, Finding], incoming: list[tuple[Key, Observation]]) -> None:
+    """Move base findings whose code moved to their new line, in place.
+
+    A base finding is a candidate when no incoming observation hits its exact
+    key, or when the only observations that hit it carry different evidence
+    (new code landed on its old line). An incoming key with no exact match
+    takes the candidate with the same file and claim whose observations share a
+    non-empty evidence string with it, nearest old line first. Each candidate
+    moves at most once; one that does not move stays where it was."""
+    hits: dict[Key, list[Observation]] = {}
+    evidence: dict[Key, set[str]] = {}
+    for key, obs in incoming:
+        if key in findings:
+            hits.setdefault(key, []).append(obs)
+        elif obs.evidence:
+            evidence.setdefault(key, set()).add(obs.evidence)
+
+    def displaced(bk: Key) -> bool:
+        old = {o.evidence for o in findings[bk].observations}
+        return all(o.evidence and o.evidence not in old for o in hits[bk])
+
+    candidates = {bk for bk in findings if bk not in hits or displaced(bk)}
+    for key in sorted(evidence):
+        pool = [
+            bk for bk in candidates
+            if bk[0] == key[0] and bk[2] == key[2]
+            and any(o.evidence in evidence[key] for o in findings[bk].observations)
+        ]
+        if not pool:
+            continue
+        bk = min(pool, key=lambda b: (abs(b[1] - key[1]), b[1]))
+        candidates.discard(bk)
+        moved = findings.pop(bk)
+        moved.line = key[1]
+        findings[key] = moved
+
+
 def reconcile(
     observation_sets: list[list[tuple[Key, Observation]]],
     base: Record | None = None,
@@ -88,16 +133,25 @@ def reconcile(
                 claim=f.claim,
                 observations=list(f.observations),
                 disposition=f.disposition,  # preserve the human decision
+                stable_id=f.id,             # identity survives a line move
             )
 
-    for obs_set in observation_sets:
-        for key, obs in obs_set:
-            f = findings.get(key)
-            if f is None:
-                f = Finding(file=key[0], line=key[1], claim=key[2], observations=[])
-                findings[key] = f
-            if not any(_same_observation(obs, existing) for existing in f.observations):
-                f.observations.append(obs)
+    incoming = [(key, obs) for obs_set in observation_sets for key, obs in obs_set]
+    _reanchor(findings, incoming)
+
+    used_ids = {f.id for f in findings.values()}
+    for key, obs in incoming:
+        f = findings.get(key)
+        if f is None:
+            salt = 0
+            while location_id(*key, salt=salt) in used_ids:
+                salt += 1
+            f = Finding(file=key[0], line=key[1], claim=key[2], observations=[],
+                        stable_id=location_id(*key, salt=salt))
+            used_ids.add(f.id)
+            findings[key] = f
+        if not any(_same_observation(obs, existing) for existing in f.observations):
+            f.observations.append(obs)
 
     record = Record(findings=list(findings.values()), deep_tier=deep_tier or (base.deep_tier if base else None))
     return record

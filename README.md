@@ -49,6 +49,20 @@ yet, drop `--base`. reconcile refuses to replace an existing record without
 
 The starter is at [skills/algol/starter-policy.toml](skills/algol/starter-policy.toml); a smaller illustrative example is at [docs/policy.example.toml](docs/policy.example.toml).
 
+## How a finding keeps its identity
+
+A decision is only useful if it stays attached to the finding it was made on.
+A finding's id is set once, from the file, line, and claim where it was first
+seen, and is stored in the record. When code moves, the same rule fires on the
+same text at a new line; reconcile then moves the finding to that line, and its
+id and disposition go with it. If the text itself changed, the finding counts
+as new and asks for a decision again, because an edit is a reason to look
+again. Findings are not retired automatically: a finding whose code is gone
+stays in the record until someone removes it, since a partial run (the gate
+collects on changed files only) cannot tell a fixed finding from one it did not
+scan. The rules are in
+[references/reconcile-and-record.md](skills/algol/references/reconcile-and-record.md).
+
 ## Data handling
 
 Algol runs against your own repository and the review engines you already use. Its record and policy live in your project as plain files under version control. It sends nothing anywhere on its own. The optional external cross-family adjudication in the deep tier (a gauntlet feature) is manual and operator-gated; Algol does not wire it in v1.

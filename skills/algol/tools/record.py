@@ -68,6 +68,14 @@ class Disposition:
             raise ValueError(f"unknown disposition state: {self.state}")
 
 
+def location_id(file: str, line: int, claim: str, salt: int = 0) -> str:
+    """The id a finding gets when it is first seen: a hash of where it was found.
+    A nonzero salt disambiguates a new finding whose location hash is already
+    held by a finding that has since moved."""
+    key = f"{file}:{line}:{claim}" + (f"#{salt}" if salt else "")
+    return hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
+
+
 @dataclass
 class Finding:
     file: str
@@ -75,11 +83,15 @@ class Finding:
     claim: str
     observations: list[Observation] = field(default_factory=list)
     disposition: Disposition | None = None
+    # The id is assigned once, from the location where the finding was first
+    # seen, and then persisted in the record. When reconcile re-anchors a finding
+    # to a new line (its code moved), the line changes and the id does not, so a
+    # disposition attached by id stays attached.
+    stable_id: str = ""
 
     @property
     def id(self) -> str:
-        key = f"{self.file}:{self.line}:{self.claim}"
-        return hashlib.sha1(key.encode("utf-8")).hexdigest()[:12]
+        return self.stable_id or location_id(self.file, self.line, self.claim)
 
     @property
     def status(self) -> str:
@@ -163,7 +175,8 @@ class Record:
                     by=d.get("by", ""),
                 )
             findings.append(
-                Finding(file=f["file"], line=f["line"], claim=f["claim"], observations=obs, disposition=disp)
+                Finding(file=f["file"], line=f["line"], claim=f["claim"], observations=obs,
+                        disposition=disp, stable_id=f.get("id", ""))
             )
         return Record(findings=findings, deep_tier=obj.get("deep_tier"))
 

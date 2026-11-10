@@ -77,6 +77,53 @@ class TestReconcile(unittest.TestCase):
         self.assertEqual(merged.findings[0].disposition.reopens_if, ["if it grows"])
 
 
+class TestLineMoves(unittest.TestCase):
+    """Regression for identity keyed on line number: a disposition must follow
+    its finding when unchanged code shifts to a new line."""
+
+    def _accepted_base(self, line=3, ev="e"):
+        base = rc.reconcile([rc._collector_observations([collector_row(line=line, ev=ev)])])
+        fid = base.findings[0].id
+        rec.set_disposition(base, fid, "accept", "fine", ["if it grows"])
+        return rec.Record.from_json(base.to_json()), fid
+
+    def test_disposition_follows_shifted_line(self) -> None:
+        base, fid = self._accepted_base(line=3)
+        merged = rc.reconcile([rc._collector_observations([collector_row(line=4)])], base=base)
+        self.assertEqual(len(merged.findings), 1)
+        f = merged.findings[0]
+        self.assertEqual((f.id, f.line), (fid, 4))
+        self.assertEqual(f.disposition.state, "accept")
+
+    def test_changed_evidence_is_a_new_finding(self) -> None:
+        base, fid = self._accepted_base(line=3, ev="old text")
+        merged = rc.reconcile([rc._collector_observations([collector_row(line=4, ev="new text")])], base=base)
+        self.assertEqual(len(merged.findings), 2)
+        new = [f for f in merged.findings if f.id != fid][0]
+        self.assertIsNone(new.disposition)
+        self.assertEqual(merged.by_id()[fid].line, 3)
+
+    def test_exact_match_is_not_reanchored(self) -> None:
+        base, fid = self._accepted_base(line=3)
+        rows = [collector_row(line=3), collector_row(line=9)]
+        merged = rc.reconcile([rc._collector_observations(rows)], base=base)
+        self.assertEqual(merged.by_id()[fid].line, 3)
+        self.assertEqual(len(merged.findings), 2)
+
+    def test_nearest_candidate_wins_and_ids_stay_unique(self) -> None:
+        rows = [collector_row(line=3), collector_row(line=20)]
+        base = rc.reconcile([rc._collector_observations(rows)])
+        ids = {f.line: f.id for f in base.findings}
+        base = rec.Record.from_json(base.to_json())
+        # Both shift down one line; a new instance appears on the old line 3.
+        rows2 = [collector_row(line=3, ev="other"), collector_row(line=4), collector_row(line=21)]
+        merged = rc.reconcile([rc._collector_observations(rows2)], base=base)
+        by_line = {f.line: f.id for f in merged.findings}
+        self.assertEqual(by_line[4], ids[3])
+        self.assertEqual(by_line[21], ids[20])
+        self.assertEqual(len(set(by_line.values())), 3)
+
+
 class TestCli(unittest.TestCase):
     def test_end_to_end_files(self) -> None:
         with tempfile.TemporaryDirectory() as d:

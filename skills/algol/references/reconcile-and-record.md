@@ -36,9 +36,22 @@ diffable record.
 reconcile takes the collectors' rows and, optionally, a gauntlet run record, and
 folds them into one Record.
 
-- Correlation is exact: observations sharing (file, line, claim) are one
-  finding. A collector's claim is its rule_id. Distinct claims on the same line
-  stay distinct rather than being over-merged.
+- Correlation: observations sharing (file, line, claim) are one finding. A
+  collector's claim is its rule_id. Distinct claims on the same line stay
+  distinct rather than being over-merged.
+- Identity survives line moves. A finding's id is assigned once, from the
+  location where it was first seen, and persisted in the record. When an
+  observation matches no base finding at its exact location, reconcile looks for
+  a base finding with the same file and claim that carries identical, non-empty
+  evidence text and was not matched in place this run. If there is one, the
+  finding moves to the new line and keeps its id, observations, and disposition;
+  the nearest old line wins when several qualify. Edited code is a new finding:
+  changed evidence does not re-anchor, so the decision is asked again.
+  Evidence is whatever the source recorded: brevlint keeps the line text, while
+  seclint keeps only the matched snippet, so a removed seclint hit and a new
+  identical one elsewhere in the same file can share an identity. The gate
+  lists any disposed finding that fires again under "re-check its reopens-if",
+  so that case is shown to a human, not hidden.
 - It never silently upgrades. A collector row enters as heuristic and stays
   heuristic. A gauntlet finding enters at the tier the source states; a missing
   tier defaults to heuristic, never to verified. The invariant is the point of
