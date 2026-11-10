@@ -17,8 +17,14 @@ target path against the policy's undo-cost classes in the compiled
 tier. This is the concrete enforcement point for reversibility routing (A13).
 
 It advises by default and prints its decision. Set `ALGOL_GUARD_BLOCK=1` to make
-it block the write instead (exit 2, the harness block signal). Point it at the
-compiled routing with `ALGOL_ROUTING`.
+it block the write instead (exit 2, the harness block signal).
+
+The repo root is `$CLAUDE_PROJECT_DIR`, which Claude Code sets for hooks, or the
+working directory. The guard reads `<root>/.algol/compiled/routing.json` unless
+`ALGOL_ROUTING` points elsewhere, and says on stderr when that file is missing
+instead of turning off without a word. Claude Code passes absolute file paths;
+the guard makes each one relative to the root before matching the policy's
+repo-relative globs, and a path outside the repo never matches.
 
 ## posttooluse: the reporter
 

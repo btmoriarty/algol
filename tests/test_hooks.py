@@ -1,6 +1,7 @@
 """Tests for the Algol hooks: guard decision and collector report."""
 from __future__ import annotations
 
+import os
 import sys
 import tempfile
 import unittest
@@ -26,6 +27,44 @@ class TestGuard(unittest.TestCase):
 
     def test_write_to_ordinary_path_allows(self) -> None:
         self.assertEqual(hooks.guard_decision("Write", "src/util.py", ROUTING)["decision"], "allow")
+
+    # Regression: Claude Code passes absolute paths, and lstrip("./") left them
+    # absolute, so repo-relative globs never matched and a `**/` glob matched
+    # folders above the repo.
+    def test_absolute_path_inside_repo_matches_relative_glob(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            path = str(Path(d) / "db" / "migrations" / "007.py")
+            self.assertEqual(hooks.guard_decision("Write", path, ROUTING, root=d)["decision"], "warn")
+
+    def test_glob_does_not_match_parent_folder_outside_repo(self) -> None:
+        routing = {"undo_cost": [{"class": "irreversible", "paths": ["**/auth*/**"]}]}
+        with tempfile.TemporaryDirectory() as d:
+            repo = Path(d) / "authority-service" / "repo"
+            repo.mkdir(parents=True)
+            inside = str(repo / "README.md")
+            self.assertEqual(hooks.guard_decision("Write", inside, routing, root=repo)["decision"], "allow")
+            in_auth = str(repo / "src" / "auth" / "login.py")
+            self.assertEqual(hooks.guard_decision("Write", in_auth, routing, root=repo)["decision"], "warn")
+
+    def test_absolute_path_outside_repo_allows(self) -> None:
+        with tempfile.TemporaryDirectory() as repo, tempfile.TemporaryDirectory() as other:
+            path = str(Path(other) / "db" / "migrations" / "007.py")
+            self.assertEqual(hooks.guard_decision("Write", path, ROUTING, root=repo)["decision"], "allow")
+
+    def test_dotfile_relative_path_keeps_its_dot(self) -> None:
+        routing = {"undo_cost": [{"class": "operational", "paths": [".github/workflows/**"]}]}
+        d = hooks.guard_decision("Edit", "./.github/workflows/ci.yml", routing)
+        self.assertEqual(d["decision"], "warn")
+
+    def test_routing_path_follows_project_root_not_cwd(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            saved = {k: os.environ.pop(k, None) for k in ("ALGOL_ROUTING",)}
+            try:
+                self.assertEqual(hooks.routing_path(Path(d)), Path(d) / ".algol" / "compiled" / "routing.json")
+            finally:
+                for k, v in saved.items():
+                    if v is not None:
+                        os.environ[k] = v
 
     def test_empty_path_allows(self) -> None:
         self.assertEqual(hooks.guard_decision("Write", "", ROUTING)["decision"], "allow")

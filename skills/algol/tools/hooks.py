@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pathmatch import matches  # noqa: E402
+from pathmatch import matches, repo_relative  # noqa: E402
 import brevlint  # noqa: E402
 import seclint  # noqa: E402
 
@@ -36,15 +36,27 @@ WRITE_TOOLS = {"Write", "Edit", "MultiEdit", "NotebookEdit"}
 MAX_REPORT_ROWS = 5
 
 
-def guard_decision(tool_name: str, path: str, routing: dict) -> dict:
+def project_root() -> Path:
+    """The repo the hook runs for: $CLAUDE_PROJECT_DIR, which Claude Code sets
+    for hooks, else the working directory."""
+    return Path(os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
+
+
+def guard_decision(tool_name: str, path: str, routing: dict, root: Path | str | None = None) -> dict:
     """Advise on a write. Returns {"decision": "allow"} or a warn with the class
-    and the engine to escalate to. Pure; the CLI decides allow vs block."""
+    and the engine to escalate to. Pure; the CLI decides allow vs block.
+
+    `path` may be absolute (as Claude Code sends it) or repo-relative. Globs are
+    matched against the path relative to `root`; a path outside the repo never
+    matches."""
     if tool_name not in WRITE_TOOLS or not path:
         return {"decision": "allow"}
-    rel = path.replace("\\", "/").lstrip("./")
+    rel = repo_relative(path, root if root is not None else project_root())
+    if rel is None:
+        return {"decision": "allow"}
     for u in routing.get("undo_cost", []):
         globs = u.get("paths", [])
-        if any(matches(g, rel) for g in globs) or any(matches(g, path) for g in globs):
+        if any(matches(g, rel) for g in globs):
             return {
                 "decision": "warn",
                 "class": u.get("class", ""),
@@ -76,10 +88,17 @@ def collect_report(path: str, standard_security: str = "security", standard_brev
     }
 
 
-def _load_routing() -> dict:
-    path = Path(os.environ.get("ALGOL_ROUTING", ".algol/compiled/routing.json"))
+def routing_path(root: Path) -> Path:
+    """$ALGOL_ROUTING if set, else the compiled routing under the repo root, so
+    the guard does not depend on the hook's working directory."""
+    env = os.environ.get("ALGOL_ROUTING")
+    return Path(env) if env else root / ".algol" / "compiled" / "routing.json"
+
+
+def _load_routing(root: Path) -> dict | None:
+    path = routing_path(root)
     if not path.is_file():
-        return {"undo_cost": []}
+        return None
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -89,7 +108,14 @@ def _file_path_from_payload(payload: dict) -> str:
 
 
 def _cmd_pretooluse(payload: dict) -> int:
-    decision = guard_decision(payload.get("tool_name", ""), _file_path_from_payload(payload), _load_routing())
+    root = project_root()
+    routing = _load_routing(root)
+    if routing is None:
+        # Say so rather than turning the guard off without a word.
+        sys.stderr.write(f"algol guard: no compiled routing at {routing_path(root)}; guard is off "
+                         "(run compile_policy.py, or set ALGOL_ROUTING)\n")
+        routing = {"undo_cost": []}
+    decision = guard_decision(payload.get("tool_name", ""), _file_path_from_payload(payload), routing, root)
     block = os.environ.get("ALGOL_GUARD_BLOCK") == "1"
     if decision["decision"] == "warn":
         sys.stderr.write("algol guard: " + decision["reason"] + "\n")

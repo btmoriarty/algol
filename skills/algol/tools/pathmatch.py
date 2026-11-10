@@ -19,7 +19,35 @@ Everything else is literal.
 from __future__ import annotations
 
 import re
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
+
+
+def norm_rel(path) -> str:
+    """A relative path as POSIX, with a leading "./" prefix removed.
+
+    Strips the "./" prefix only, never str.lstrip("./"), which would also eat
+    the leading dot of a dotfile path like ".github/workflows/ci.yml"."""
+    p = str(path).replace("\\", "/")
+    while p.startswith("./"):
+        p = p[2:]
+    return p
+
+
+def repo_relative(path, root) -> str | None:
+    """`path` relative to the repo `root`, as POSIX, or None when `path` is
+    absolute and lies outside the root.
+
+    Policy globs are repo-relative, so an absolute path (Claude Code hooks pass
+    absolute file paths) must be made relative before matching. Matching the
+    absolute path itself would let `**/auth*/**` match a parent folder outside
+    the repo and keep `migrations/**` from ever matching."""
+    raw = str(path)
+    if not (Path(raw).is_absolute() or PureWindowsPath(raw).is_absolute()):
+        return norm_rel(raw)
+    try:
+        return Path(raw).resolve().relative_to(Path(root).resolve()).as_posix()
+    except ValueError:
+        return None
 
 
 def glob_to_regex(pattern: str) -> re.Pattern:
