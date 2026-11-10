@@ -2,9 +2,7 @@ name: CI
 
 # Runs the test suite on every push and pull request, then rebuilds the
 # installable .skill bundle on the default branch and commits it back. The
-# test job is the gate the golden-path regression (v1.1 task 2) plugs into.
-#
-# Commit this file from a real terminal: an API token lacks the workflow scope.
+# test job is the gate the golden-path regression plugs into.
 
 on:
   push:

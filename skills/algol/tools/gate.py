@@ -24,7 +24,7 @@ reconcile, record, pathmatch, changed).
 Usage:
   python gate.py --base origin/main                      # diff base..worktree
   python gate.py --base origin/main --head HEAD          # PR range
-  python gate.py --changed sage/api.py sage/app.js       # explicit files
+  python gate.py --changed src/api.py src/app.js         # explicit files
   python gate.py --base origin/main --dry-run            # preview, do not write
 Reads .algol/compiled/ and .algol/record.json by default; writes the updated
 record back unless --dry-run.
