@@ -136,6 +136,28 @@ class TestRouting(unittest.TestCase):
 
 
 class TestCli(unittest.TestCase):
+    def test_record_defaults_to_project_root_not_cwd(self) -> None:
+        # Regression: --record defaulted to .algol/record.json under the cwd
+        # while the root came from --compiled, so a run from another directory
+        # started a fresh record and the project's decisions were not loaded.
+        import io
+        import os
+        from contextlib import redirect_stderr
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as elsewhere:
+            root = project(tmp)
+            (root / "a.py").write_text("x = eval(user_input)\n")
+            comp = root / ".algol" / "compiled"
+            cwd = os.getcwd()
+            os.chdir(elsewhere)
+            try:
+                with redirect_stderr(io.StringIO()):
+                    code = gate.main(["--compiled", str(comp), "--changed", "a.py"])
+            finally:
+                os.chdir(cwd)
+            self.assertEqual(code, 0)
+            self.assertTrue((root / ".algol" / "record.json").is_file())
+            self.assertFalse((Path(elsewhere) / ".algol").exists())
+
     def test_main_writes_record(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = project(tmp)

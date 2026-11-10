@@ -61,7 +61,8 @@ python skills/algol/tools/gate.py --changed src/a.py src/b.js       # explicit f
 python skills/algol/tools/gate.py --base origin/main --dry-run      # preview, do not write
 ```
 
-Defaults: reads `.algol/compiled/` and `.algol/record.json`, writes the updated
-record back unless `--dry-run`. `--root` defaults to two levels up from
-`--compiled`. Wire it as a pre-merge check so every change passes the gate and
+Defaults: reads `.algol/compiled/` and `<root>/.algol/record.json`, writes the
+updated record back unless `--dry-run`. `--root` defaults to two levels up from
+`--compiled`, and the record follows the root, so a run from a subdirectory
+still merges into the project's record. Wire it as a pre-merge check so every change passes the gate and
 the record is the project's running account of what was found and decided.

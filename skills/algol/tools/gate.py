@@ -193,8 +193,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--base", default=None, help="base ref for git diff (base..worktree, or with --head a PR range)")
     parser.add_argument("--head", default=None, help="head ref; with --base uses base...head")
     parser.add_argument("--staged", action="store_true", help="use the staged index for the diff")
-    parser.add_argument("--record", type=Path, default=Path(".algol/record.json"),
-                        help="record to merge into and update (created if absent)")
+    parser.add_argument("--record", type=Path, default=None,
+                        help="record to merge into and update, created if absent "
+                             "(default: <root>/.algol/record.json)")
     parser.add_argument("--out", type=Path, default=None, help="where to write (default: the --record path)")
     parser.add_argument("--dry-run", action="store_true", help="do not write the record")
     parser.add_argument("--show-floor", action="store_true", help="list the native-collector floor findings, not just count them")
@@ -210,6 +211,9 @@ def main(argv: list[str] | None = None) -> int:
     scanner = json.loads(scanner_path.read_text(encoding="utf-8"))
 
     root = args.root if args.root is not None else args.compiled.resolve().parent.parent
+    # The record lives with the project, not wherever the gate was run from, so
+    # running from a subdirectory never starts a fresh record and loses decisions.
+    record_path = args.record if args.record is not None else root / ".algol" / "record.json"
 
     # Resolve the change.
     changed: list[str] = []
@@ -234,10 +238,10 @@ def main(argv: list[str] | None = None) -> int:
         print("gate: no changed files; nothing to do", file=sys.stderr)
         return 0
 
-    base = Record.from_json(args.record.read_text(encoding="utf-8")) if args.record.is_file() else None
+    base = Record.from_json(record_path.read_text(encoding="utf-8")) if record_path.is_file() else None
     record, summary = run_gate(root, routing, scanner, changed, base)
 
-    out = args.out if args.out is not None else args.record
+    out = args.out if args.out is not None else record_path
     if not args.dry_run:
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(record.to_json(), encoding="utf-8")
