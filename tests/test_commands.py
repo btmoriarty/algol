@@ -55,7 +55,9 @@ class TestCommandFor(unittest.TestCase):
     def test_seclint_command(self) -> None:
         cmd = router.command_for("seclint", ["a.py"], CTX)
         self.assertIn("/T/seclint.py", cmd)
-        self.assertIn("--rules /C/scanner-rules.json", cmd)
+        # Regression: --rules made the collector scan every rule-matched file
+        # in the repo, not just the change, so the command passes files only.
+        self.assertNotIn("--rules", cmd)
         self.assertIn("--root /R", cmd)
         self.assertIn("a.py", cmd)
 

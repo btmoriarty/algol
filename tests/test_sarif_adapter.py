@@ -214,5 +214,20 @@ class TestReconcileIntegration(unittest.TestCase):
         self.assertEqual(len(record.findings), 1)
 
 
+class TestFileUris(unittest.TestCase):
+    def test_absolute_file_uri_under_root_becomes_relative(self) -> None:
+        # Regression: file:// URIs kept their absolute path, so a SARIF finding
+        # never correlated with the same file's rows from the gate.
+        root = Path("/work/repo")
+        doc = sarif([result(file="file:///work/repo/app/db.py"),
+                     result(file="file:///elsewhere/lib.py", line=3)])
+        rows, _ = sa.parse_sarif(doc, root=root)
+        self.assertEqual([r.file for r in rows], ["app/db.py", "/elsewhere/lib.py"])
+
+    def test_without_root_uri_is_unchanged(self) -> None:
+        rows, _ = sa.parse_sarif(sarif([result(file="file:///work/repo/app/db.py")]))
+        self.assertEqual(rows[0].file, "/work/repo/app/db.py")
+
+
 if __name__ == "__main__":
     unittest.main()

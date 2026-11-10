@@ -63,6 +63,30 @@ class TestRules(unittest.TestCase):
 
 
 class TestCli(unittest.TestCase):
+    def test_rows_name_files_relative_to_root_without_duplicates(self) -> None:
+        # Regression: with --rules and an absolute --root, rows named files by
+        # absolute path, and a file passed explicitly was scanned twice, so the
+        # same finding landed in the record under two keys.
+        import io
+        import json
+        import tempfile
+        from contextlib import redirect_stdout
+
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "src").mkdir()
+            (root / "src" / "a.py").write_text("eval(x)\n", encoding="utf-8")
+            rules = root / "scanner-rules.json"
+            rules.write_text(json.dumps({"collectors": {"seclint": ["**/*.py"]}}), encoding="utf-8")
+            buf = io.StringIO()
+            with redirect_stdout(buf):
+                code = seclint.main(["--rules", str(rules), "--root", str(root), "src/a.py",
+                                     str(root / "src" / "a.py")])
+            self.assertEqual(code, 0)
+            rows = json.loads(buf.getvalue())
+            self.assertEqual({r["file"] for r in rows}, {"src/a.py"})
+            self.assertEqual(len(rows), len({(r["line"], r["rule_id"]) for r in rows}))
+
     def test_rules_file_extends_defaults(self) -> None:
         import json
         import tempfile

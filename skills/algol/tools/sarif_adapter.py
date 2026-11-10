@@ -39,6 +39,7 @@ from urllib.parse import unquote
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from evidence import EvidenceRow, rows_to_json  # noqa: E402
+from pathmatch import repo_relative  # noqa: E402
 
 # SARIF severity levels, lowest to highest. "none" is informational.
 _LEVEL_RANK = {"none": 0, "note": 1, "warning": 2, "error": 3}
@@ -62,12 +63,19 @@ def _slug(name: str) -> str:
     return s or "sarif"
 
 
-def _clean_uri(uri: str) -> str:
+def _clean_uri(uri: str, root: Path | None = None) -> str:
+    """A SARIF artifact URI as a repo-relative path where possible. Many tools
+    write absolute file:// URIs; under `root` those become relative, so the
+    rows key the same way as the record. A path outside the root stays as is."""
     if not uri:
         return ""
     u = unquote(uri)
     if u.startswith("file://"):
         u = u[len("file://"):]
+    if root is not None:
+        rel = repo_relative(u, root)
+        if rel is not None:
+            return rel
     if u.startswith("./"):
         u = u[2:]
     return u
@@ -142,7 +150,7 @@ def _message_text(result: dict, rule: dict) -> str:
     return ""
 
 
-def _physical_locations(result: dict) -> list[tuple[str, int, int, str]]:
+def _physical_locations(result: dict, root: Path | None = None) -> list[tuple[str, int, int, str]]:
     """Return (file, line, col, snippet) per physical location, in document order."""
     out: list[tuple[str, int, int, str]] = []
     for loc in result.get("locations") or []:
@@ -152,7 +160,7 @@ def _physical_locations(result: dict) -> list[tuple[str, int, int, str]]:
         if not isinstance(phys, dict):
             continue
         art = phys.get("artifactLocation") or {}
-        uri = _clean_uri(str(art.get("uri", "")))
+        uri = _clean_uri(str(art.get("uri", "")), root)
         if not uri:
             continue
         region = phys.get("region") or {}
@@ -178,7 +186,8 @@ def _one_line(text: str, limit: int = _EVIDENCE_MAX) -> str:
     return flat[:limit]
 
 
-def parse_sarif(doc: dict, standard: str = "security", min_level: str = "note") -> tuple[list[EvidenceRow], dict]:
+def parse_sarif(doc: dict, standard: str = "security", min_level: str = "note",
+                root: Path | None = None) -> tuple[list[EvidenceRow], dict]:
     """Convert a parsed SARIF document into evidence rows.
 
     Returns (rows, stats). stats counts what was dropped and why, so a silent
@@ -225,7 +234,7 @@ def parse_sarif(doc: dict, standard: str = "security", min_level: str = "note") 
                 stats["below_level"] += 1
                 continue
 
-            locations = _physical_locations(result)
+            locations = _physical_locations(result, root)
             if not locations:
                 stats["no_location"] += 1
                 continue
@@ -258,6 +267,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--standard", default="security", help="policy axis these rows map to")
     parser.add_argument("--min-level", default="note", choices=sorted(_LEVEL_RANK),
                         help="drop results below this SARIF level (default: note)")
+    parser.add_argument("--root", type=Path, default=Path("."),
+                        help="repo root; absolute file:// URIs under it become relative (default: .)")
     parser.add_argument("--out", type=Path, default=None, help="write JSON here (default: stdout)")
     args = parser.parse_args(argv)
 
@@ -274,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"sarif_adapter: {fpath}: not valid JSON: {exc}", file=sys.stderr)
             return 2
         try:
-            rows, stats = parse_sarif(doc, standard=args.standard, min_level=args.min_level)
+            rows, stats = parse_sarif(doc, standard=args.standard, min_level=args.min_level, root=args.root)
         except SarifError as exc:
             print(f"sarif_adapter: {fpath}: {exc}", file=sys.stderr)
             return 2

@@ -53,7 +53,9 @@ python skills/algol/tools/reconcile.py --collector rows.json --base .algol/recor
 
 Drop `--base` only on the first run, when no record exists yet.
 
-`--standard` sets the policy axis the rows map to (default `security`, which is
-what most SARIF-emitting scanners cover). Pass several SARIF files at once to
+`--root` (default `.`) is the repo root: an absolute `file://` URI under it
+becomes a repo-relative path, so a SARIF finding correlates with the same
+file's rows from the gate. `--standard` sets the policy axis the rows map to
+(default `security`, which is what most SARIF-emitting scanners cover). Pass several SARIF files at once to
 merge multiple tools in one pass; run twice into the same record with `--base`
 to accumulate across tools while preserving your dispositions.

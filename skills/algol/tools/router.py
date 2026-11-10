@@ -119,9 +119,9 @@ def command_for(engine: str, paths, ctx: dict) -> str | None:
     if engine == "skip":
         return None
     if engine == "seclint":
-        return f"python {tools}/seclint.py --rules {compiled}/scanner-rules.json --root {root} {p}"
+        return f"python {tools}/seclint.py --root {root} {p}"
     if engine == "brevlint":
-        return f"python {tools}/brevlint.py --rules {compiled}/scanner-rules.json --root {root} {p}"
+        return f"python {tools}/brevlint.py --root {root} {p}"
     if engine == "policy-review":
         return f"python {tools}/policy_review.py prompt --review {compiled}/REVIEW.md --changed {p} --out prompt.txt"
     if engine == "/code-review":

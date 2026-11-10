@@ -46,6 +46,11 @@ python skills/algol/tools/brevlint.py FILE [FILE ...] [--max-line 100]
 python skills/algol/tools/brevlint.py --rules .algol/compiled/scanner-rules.json --root .
 ```
 
+`FILE` arguments scan only those files; `--rules` scans every file the
+compiled policy's globs match under `--root`, so use it for a whole-repo pass,
+not for a change. Rows name each file relative to `--root`, the same key the
+gate and the record use, and a file named twice is scanned once.
+
 Exit code is 0 whether or not rows are emitted. A collector reports; it does not
 gate. That decision belongs to the router and the record.
 

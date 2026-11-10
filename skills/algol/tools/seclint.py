@@ -35,7 +35,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from evidence import EvidenceRow, rows_to_json  # noqa: E402
-from pathmatch import iter_matching_files  # noqa: E402
+from pathmatch import collect_targets  # noqa: E402
 
 IGNORE_MARKER = "seclint:ignore"
 
@@ -119,10 +119,9 @@ def _read_text(path: Path) -> str | None:
         return None
 
 
-def _resolve_from_rules(rules_path: Path, root: Path) -> list[Path]:
+def _rule_globs(rules_path: Path) -> list[str]:
     data = json.loads(rules_path.read_text(encoding="utf-8"))
-    globs = data.get("collectors", {}).get("seclint", [])
-    return iter_matching_files(root, globs)
+    return list(data.get("collectors", {}).get("seclint", []))
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -130,7 +129,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("files", nargs="*", type=Path, help="files to scan")
     parser.add_argument("--standard", default="security", help="policy axis these rows map to")
     parser.add_argument("--rules", type=Path, default=None, help="scanner-rules.json from the compiler")
-    parser.add_argument("--root", type=Path, default=Path("."), help="root to resolve --rules globs")
+    parser.add_argument("--root", type=Path, default=Path("."), help="repo root: --rules globs and relative files resolve here, and rows name files relative to it")
     parser.add_argument("--rules-file", type=Path, default=None, help="extra rules JSON to add to the defaults")
     parser.add_argument("--out", type=Path, default=None, help="write JSON here (default: stdout)")
     args = parser.parse_args(argv)
@@ -142,22 +141,23 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         rules.extend(json.loads(args.rules_file.read_text(encoding="utf-8")))
 
-    targets: list[Path] = list(args.files)
+    globs: list[str] = []
     if args.rules is not None:
         if not args.rules.is_file():
             print(f"seclint: rules not found: {args.rules}", file=sys.stderr)
             return 2
-        targets.extend(_resolve_from_rules(args.rules, args.root))
+        globs = _rule_globs(args.rules)
+    targets = collect_targets(args.files, args.root, globs)
     if not targets:
         print("seclint: no files given (pass files, or --rules with --root)", file=sys.stderr)
         return 2
 
     rows: list[EvidenceRow] = []
-    for path in targets:
+    for path, name in targets:
         text = _read_text(path)
         if text is None:
             continue
-        rows.extend(lint_text(str(path), text, args.standard, rules))
+        rows.extend(lint_text(name, text, args.standard, rules))
 
     output = rows_to_json(rows)
     if args.out is not None:

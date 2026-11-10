@@ -76,6 +76,36 @@ def matches(pattern: str, rel_posix_path: str) -> bool:
     return glob_to_regex(pattern).match(rel_posix_path) is not None
 
 
+def collect_targets(files, root, globs=()) -> list[tuple[Path, str]]:
+    """The files a collector should read, as (path to read, name to report).
+
+    Explicit `files` are read relative to `root` unless absolute; files matched
+    by `globs` are found under `root`. Every reported name is repo-relative
+    POSIX when the file is inside the root, so collector rows key the same way
+    the gate and the record do. A file named twice is collected once."""
+    root = Path(root)
+    out: list[tuple[Path, str]] = []
+    seen: set[str] = set()
+
+    def add(read: Path, name: str) -> None:
+        if name not in seen:
+            seen.add(name)
+            out.append((read, name))
+
+    for f in files:
+        raw = str(f)
+        rel = repo_relative(raw, root)
+        if rel is None:
+            add(Path(raw), Path(raw).as_posix())   # absolute and outside the root
+        elif Path(raw).is_absolute():
+            add(Path(raw), rel)
+        else:
+            add(root / rel, rel)
+    for p in iter_matching_files(root, list(globs)):
+        add(p, p.relative_to(root).as_posix())
+    return out
+
+
 def iter_matching_files(root: Path, patterns) -> list[Path]:
     """Every file under root whose relative POSIX path matches any pattern.
 

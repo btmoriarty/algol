@@ -72,6 +72,19 @@ class TestSerialization(unittest.TestCase):
 
 
 class TestCli(unittest.TestCase):
+    def test_rule_matched_files_are_named_relative_to_root(self) -> None:
+        # Regression: an absolute --root produced absolute file names in rows.
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "doc.md").write_text("x" * 200 + "\n", encoding="utf-8")
+            rules = root / "scanner-rules.json"
+            rules.write_text(json.dumps({"collectors": {"brevlint": ["**/*.md"]}}), encoding="utf-8")
+            out = root / "rows.json"
+            self.assertEqual(brevlint.main(["--rules", str(rules), "--root", str(root), "--out", str(out)]), 0)
+            rows = json.loads(out.read_text(encoding="utf-8"))
+            self.assertTrue(rows)
+            self.assertEqual({r["file"] for r in rows}, {"doc.md"})
+
     def test_resolves_from_scanner_rules(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             root = Path(d)
