@@ -39,6 +39,19 @@ class TestCommandFor(unittest.TestCase):
     def test_skip_has_no_command(self) -> None:
         self.assertIsNone(router.command_for("skip", [], CTX))
 
+    def test_paths_are_shell_quoted(self) -> None:
+        # Regression: paths went into the pasted command unquoted, so a file
+        # named "a; rm -rf x.py" pasted as two commands.
+        import shlex
+        nasty = "src/a; rm -rf x.py"
+        for engine in ("seclint", "brevlint", "policy-review"):
+            cmd = router.command_for(engine, [nasty, "my file.py"], CTX)
+            self.assertIn(shlex.quote(nasty), cmd)
+            self.assertIn("'my file.py'", cmd)
+            self.assertIn(nasty, shlex.split(cmd))
+        spaced = router.command_for("seclint", ["a.py"], {"tools": "/T dir", "compiled": "/C", "root": "/R"})
+        self.assertEqual(shlex.split(spaced)[1], "/T dir/seclint.py")
+
     def test_seclint_command(self) -> None:
         cmd = router.command_for("seclint", ["a.py"], CTX)
         self.assertIn("/T/seclint.py", cmd)

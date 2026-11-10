@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import sys
 from pathlib import Path
 
@@ -109,9 +110,12 @@ def command_for(engine: str, paths, ctx: dict) -> str | None:
     """The copy-pasteable command to run an engine on paths, or None for skip.
     ctx carries `tools`, `compiled`, `root` as strings. External or composed
     engines get a commented how-to rather than a fake one-liner, because a human
-    runs them and then folds the result in."""
-    tools, compiled, root = ctx["tools"], ctx["compiled"], ctx["root"]
-    p = " ".join(paths)
+    runs them and then folds the result in. Every path is shell-quoted, so a
+    file name with a space or a shell metacharacter pastes as one argument and
+    never as a second command."""
+    q = shlex.quote
+    tools, compiled, root = q(str(ctx["tools"])), q(str(ctx["compiled"])), q(str(ctx["root"]))
+    p = " ".join(q(str(x)) for x in paths)
     if engine == "skip":
         return None
     if engine == "seclint":
