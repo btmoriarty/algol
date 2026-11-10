@@ -1,12 +1,14 @@
-"""Tests for changed: the git-diff file lister. The git call is not unit-tested
-here (the golden path exercises real git); these cover the pure argument and
-parse logic.
+"""Tests for changed: the git-diff file lister. These cover the pure argument
+and parse logic, plus one real-git regression for non-ASCII paths.
 
 Run: python -m unittest discover -s tests
 """
 from __future__ import annotations
 
+import shutil
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -17,8 +19,8 @@ import changed  # noqa: E402
 
 
 class TestParseNames(unittest.TestCase):
-    def test_strips_and_drops_blanks(self) -> None:
-        self.assertEqual(changed._parse_names("a.py\n\n  b.js \n"), ["a.py", "b.js"])
+    def test_splits_nul_terminated_verbatim(self) -> None:
+        self.assertEqual(changed._parse_names("a.py\0 b c.js\0café.py\0"), ["a.py", " b c.js", "café.py"])
 
     def test_empty(self) -> None:
         self.assertEqual(changed._parse_names(""), [])
@@ -30,6 +32,7 @@ class TestGitDiffArgs(unittest.TestCase):
         self.assertIn("--cached", args)
         self.assertIn("--diff-filter=d", args)
         self.assertIn("--relative", args)
+        self.assertIn("-z", args)
 
     def test_pr_range_is_triple_dot(self) -> None:
         args = changed._git_diff_args("origin/main", "HEAD", False)
@@ -44,6 +47,24 @@ class TestGitDiffArgs(unittest.TestCase):
         args = changed._git_diff_args("origin/main", "HEAD", True)
         self.assertIn("--cached", args)
         self.assertNotIn("origin/main...HEAD", args)
+
+
+@unittest.skipUnless(shutil.which("git"), "git not installed")
+class TestRealGit(unittest.TestCase):
+    def test_non_ascii_and_spaced_paths_survive(self) -> None:
+        # Regression: without -z, git quoted "café.py" as "caf\303\251.py", the
+        # is_file() check failed, and the file vanished from the change.
+        with tempfile.TemporaryDirectory() as d:
+            def git(*a):
+                subprocess.run(["git", "-C", d, *a], check=True, capture_output=True)
+            git("init", "-q")
+            git("-c", "user.email=t@example.com", "-c", "user.name=t",
+                "commit", "-q", "--allow-empty", "-m", "base")
+            for name in ("café.py", "with space.py", "plain.py"):
+                (Path(d) / name).write_text("x = 1\n", encoding="utf-8")
+            git("add", "-A")
+            self.assertEqual(sorted(changed.changed_files(d, staged=True)),
+                             ["café.py", "plain.py", "with space.py"])
 
 
 if __name__ == "__main__":

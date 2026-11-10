@@ -29,13 +29,17 @@ from pathlib import Path
 
 
 def _parse_names(output: str) -> list[str]:
-    return [ln.strip() for ln in output.splitlines() if ln.strip()]
+    """Split `git diff -z` output. Entries are NUL-terminated and verbatim, so a
+    path is never stripped: leading or trailing spaces are part of the name."""
+    return [name for name in output.split("\0") if name]
 
 
 def _git_diff_args(base: str | None, head: str | None, staged: bool) -> list[str]:
     # --relative makes paths relative to the -C directory; --diff-filter=d drops
-    # deletions; --name-only is all we need.
-    args = ["diff", "--name-only", "--relative", "--diff-filter=d"]
+    # deletions; --name-only is all we need. -z prints each path verbatim and
+    # NUL-terminated; without it git C-quotes non-ASCII paths ("caf\303\251.py"),
+    # which then fail the is_file() check and drop out of the change silently.
+    args = ["diff", "--name-only", "-z", "--relative", "--diff-filter=d"]
     if staged:
         args.append("--cached")
     elif base and head:
@@ -51,7 +55,7 @@ def changed_files(root: str | Path = ".", base: str | None = None,
     fails (not a repo, unknown ref)."""
     root = Path(root)
     cmd = ["git", "-C", str(root), *_git_diff_args(base, head, staged)]
-    proc = subprocess.run(cmd, capture_output=True, text=True)
+    proc = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="surrogateescape")
     if proc.returncode != 0:
         raise RuntimeError(f"git diff failed: {proc.stderr.strip() or proc.stdout.strip()}")
     names = _parse_names(proc.stdout)
