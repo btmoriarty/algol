@@ -39,8 +39,13 @@ through it. The lower-level tools compose too:
 ```
 python skills/algol/tools/compile_policy.py .algol/policy.toml
 python skills/algol/tools/router.py --routing .algol/compiled/routing.json --changed src/a.py
-python skills/algol/tools/reconcile.py --collector rows.json --out .algol/record.json
+python skills/algol/tools/reconcile.py --collector rows.json --base .algol/record.json --out .algol/record.json
 ```
+
+Pass the existing record as `--base` on every run after the first, so the
+dispositions in it carry forward. On the first run, when there is no record
+yet, drop `--base`. reconcile refuses to replace an existing record without
+`--base`, because that would erase every decision in it.
 
 The starter is at [skills/algol/starter-policy.toml](skills/algol/starter-policy.toml); a smaller illustrative example is at [docs/policy.example.toml](docs/policy.example.toml).
 

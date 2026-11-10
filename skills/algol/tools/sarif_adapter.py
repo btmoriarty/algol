@@ -25,7 +25,8 @@ Usage:
       [--standard security] [--min-level note] [--out rows.json]
 
 Then feed the rows to reconcile like any collector:
-  python reconcile.py --collector rows.json --out .algol/record.json
+  python reconcile.py --collector rows.json --base .algol/record.json --out .algol/record.json
+(drop --base on the first run, when no record exists yet)
 """
 from __future__ import annotations
 

@@ -48,8 +48,10 @@ or an unknown `--min-level` raises a named error and a non-zero exit. An empty
 python skills/algol/tools/sarif_adapter.py results.sarif [more.sarif ...] \
     [--standard security] [--min-level note] [--out rows.json]
 
-python skills/algol/tools/reconcile.py --collector rows.json --out .algol/record.json
+python skills/algol/tools/reconcile.py --collector rows.json --base .algol/record.json --out .algol/record.json
 ```
+
+Drop `--base` only on the first run, when no record exists yet.
 
 `--standard` sets the policy axis the rows map to (default `security`, which is
 what most SARIF-emitting scanners cover). Pass several SARIF files at once to

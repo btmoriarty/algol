@@ -21,6 +21,11 @@ Floor: Python 3.11+, stdlib only (record.py is a sibling module).
 Usage:
   python reconcile.py --collector rows.json [--collector more.json] \
       [--gauntlet run-record.json] [--base record.json] --out record.json
+
+The first run writes a new record. Every later run passes the existing record
+as --base, so its dispositions carry forward. reconcile refuses to replace an
+existing --out without --base, because that would erase every disposition in
+it; pass --overwrite to replace it on purpose.
 """
 from __future__ import annotations
 
@@ -106,7 +111,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--rigor", type=Path, default=None, help="an applying-formal-rigor result JSON file")
     parser.add_argument("--base", type=Path, default=None, help="an existing record.json to merge into")
     parser.add_argument("--out", type=Path, required=True, help="where to write the reconciled record")
+    parser.add_argument("--overwrite", action="store_true",
+                        help="replace an existing --out without merging it (erases its dispositions)")
     args = parser.parse_args(argv)
+
+    if args.base is None and args.out.exists() and not args.overwrite:
+        print(
+            f"reconcile: {args.out} already exists; pass --base {args.out} to merge into it "
+            "and keep its dispositions, or --overwrite to replace it",
+            file=sys.stderr,
+        )
+        return 2
 
     observation_sets: list[list[tuple[Key, Observation]]] = []
     for cpath in args.collector:

@@ -101,6 +101,10 @@ seclint/os-system          | src/auth.py line 3 | os.system(
 python3 $ALGOL/skills/algol/tools/reconcile.py --collector sec.json --collector brev.json --out .algol/record.json
 ```
 
+This is the first run, so there is no record to merge into yet. Every later run
+passes `--base .algol/record.json`, as step 5 does; without it reconcile refuses
+to replace the existing record and its dispositions.
+
 Every finding enters as `heuristic`: a collector rule firing is a signal, not a
 proven defect.
 

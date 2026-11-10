@@ -39,7 +39,7 @@ route here.
 ```
 python skills/algol/tools/reconcile.py \
     --collector rows.json --uat uat-result.json --rigor rigor-result.json \
-    --out .algol/record.json
+    --base .algol/record.json --out .algol/record.json
 ```
 
 ## Why route out

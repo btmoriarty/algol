@@ -89,6 +89,37 @@ class TestCli(unittest.TestCase):
             record = rec.Record.from_json(out.read_text())
             self.assertEqual(len(record.findings), 1)
 
+    def test_rerun_without_base_refuses_to_erase_dispositions(self) -> None:
+        # Regression: the README once documented reconcile without --base, which
+        # rewrote the record from scratch and dropped every human disposition.
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            rows = root / "rows.json"
+            rows.write_text(json.dumps([collector_row()]), encoding="utf-8")
+            out = root / "record.json"
+            self.assertEqual(rc.main(["--collector", str(rows), "--out", str(out)]), 0)
+            record = rec.Record.from_json(out.read_text())
+            rec.set_disposition(record, record.findings[0].id, "accept", "fine", ["if it grows"])
+            out.write_text(record.to_json(), encoding="utf-8")
+            before = out.read_text()
+
+            self.assertEqual(rc.main(["--collector", str(rows), "--out", str(out)]), 2)
+            self.assertEqual(out.read_text(), before)
+
+            self.assertEqual(rc.main(["--collector", str(rows), "--base", str(out), "--out", str(out)]), 0)
+            kept = rec.Record.from_json(out.read_text())
+            self.assertEqual(kept.findings[0].disposition.state, "accept")
+
+    def test_overwrite_replaces_existing_record_on_purpose(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            rows = root / "rows.json"
+            rows.write_text(json.dumps([collector_row()]), encoding="utf-8")
+            out = root / "record.json"
+            out.write_text(rec.Record().to_json(), encoding="utf-8")
+            self.assertEqual(rc.main(["--collector", str(rows), "--out", str(out), "--overwrite"]), 0)
+            self.assertEqual(len(rec.Record.from_json(out.read_text()).findings), 1)
+
     def test_nothing_to_reconcile_errors(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             self.assertEqual(rc.main(["--out", str(Path(d) / "r.json")]), 2)
