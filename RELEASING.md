@@ -20,6 +20,11 @@ Notes:
 
 - CI rebuilds `algol.skill` on a push to the default branch, so do not commit the
   bundle in feature commits; let CI own it.
+- Keep the doc-sync set current with every feature: `README.md`,
+  `docs/one-pager.md`, `docs/one-pager.html`, `docs/OVERVIEW.md`,
+  `docs/what-algol-does.html`, and `docs/CHEATSHEET.md`.
 - The cheat sheet renders to `docs/CHEATSHEET.pdf` from `docs/CHEATSHEET.html`
-  (Letter landscape, background graphics on). Re-render at the release, and
-  remove `docs/CHEATSHEET.pdf.stale` once it is current.
+  (Letter landscape, background graphics on). Render it once per release, when
+  the whole batch is complete and tested, not per feature. The committed PDF
+  predates the current HTML styling and is due for a re-render at the next
+  release.
