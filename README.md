@@ -40,6 +40,7 @@ through it. The lower-level tools compose too:
 python skills/algol/tools/compile_policy.py .algol/policy.toml
 python skills/algol/tools/router.py --routing .algol/compiled/routing.json --changed src/a.py
 python skills/algol/tools/reconcile.py --collector rows.json --base .algol/record.json --out .algol/record.json
+python skills/algol/tools/decide.py set <finding-id> --state accept --rationale "..." --reopens-if "..."
 ```
 
 Pass the existing record as `--base` on every run after the first, so the

@@ -164,7 +164,10 @@ def _print_summary(summary: dict, record: Record, out: Path, wrote: bool,
           file=e)
     for fid in summary["new_signal"]:
         f = by_id[fid]
-        print(f"  - {f.file}:{f.line} {f.claim} [{f.status}]", file=e)
+        print(f"  - {fid} {f.file}:{f.line} {f.claim} [{f.status}]", file=e)
+    if summary["new_signal"]:
+        print(f"gate: record a decision with: python {ctx['tools']}/decide.py set <id> "
+              "--state accept|suppress|defer --rationale ... --reopens-if ...", file=e)
     if summary["new_floor"]:
         print(f"gate: + {len(summary['new_floor'])} new floor finding(s) from the native "
               f"collectors (deterministic, lowest signal"
@@ -172,13 +175,14 @@ def _print_summary(summary: dict, record: Record, out: Path, wrote: bool,
         if show_floor:
             for fid in summary["new_floor"]:
                 f = by_id[fid]
-                print(f"    · {f.file}:{f.line} {f.claim}", file=e)
+                print(f"    · {fid} {f.file}:{f.line} {f.claim}", file=e)
     if summary["reappeared_disposed"]:
         print("gate: a disposed finding fired again; re-check its reopens-if:", file=e)
         for fid in summary["reappeared_disposed"]:
             f = by_id[fid]
             conds = "; ".join(f.disposition.reopens_if) if f.disposition else ""
-            print(f"  - {f.file}:{f.line} {f.claim} [{f.disposition.state}] reopens-if: {conds or '(none set)'}", file=e)
+            print(f"  - {fid} {f.file}:{f.line} {f.claim} [{f.disposition.state}] "
+                  f"reopens-if: {conds or '(none set)'}", file=e)
     print(f"gate: {'wrote' if wrote else 'would write'} record to {out}", file=e)
 
 

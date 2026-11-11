@@ -31,6 +31,22 @@ wall-clock timestamp, so it diffs cleanly. An `append_event` helper writes a
 separate JSONL event log, which is temporal by design and kept apart from the
 diffable record.
 
+## Recording a decision (decide.py)
+
+`decide.py list` prints each finding's id, decision, tier, and location
+(`--undecided` for the open ones); the gate prints the same ids.
+`decide.py set <id>` attaches the disposition, writes the record, and appends a
+timestamped `disposition` event to `events.jsonl` beside the record. It needs
+one to three `--reopens-if` conditions; a decision with none is refused unless
+`--no-reopens` says the permanent verdict is meant, and is then flagged.
+
+```
+python skills/algol/tools/decide.py list --undecided
+python skills/algol/tools/decide.py set 3f2a9c1b --state suppress \
+    --rationale "input is a constant here" \
+    --reopens-if "the argument becomes user-controlled" --by alex
+```
+
 ## The merge (reconcile.py)
 
 reconcile takes the collectors' rows and, optionally, a gauntlet run record, and
