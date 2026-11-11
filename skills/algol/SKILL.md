@@ -9,7 +9,7 @@ Govern what gets reviewed and record what was decided. Algol reviews nothing its
 
 Algol reads a project's versioned review standards, routes each change to the right engine per policy and undo-cost, reconciles every engine's findings into one record, never upgrading a heuristic to verified without notice, and preserves each human decision with the conditions that would reopen it.
 
-v0.9.0, local scope. See `docs/DESIGN.md` for the full design and each `references/` file for a component's protocol.
+v0.16.0, local scope. See `docs/DESIGN.md` for the full design and each `references/` file for a component's protocol.
 
 ## The pieces
 

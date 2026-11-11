@@ -1,8 +1,8 @@
 # Algol overview
 
-For review. A current, honest account of the whole tool: what it is, how it is built, what is shipped, and what is still drafted. Where the repo and a drafted change disagree, this describes the repo and flags the draft.
+This is an account of the whole tool: what it is, how it is built, what is shipped, and what is still drafted. Where the repo and a drafted change disagree, this describes the repo and flags the draft.
 
-Status: v0.10.0, public at github.com/btmoriarty/algol. The v1 review scope is local-only, described below. The repository has 98 tests across 13 files: brevlint 9, compile_policy 10, compose_adapter 7, gauntlet_adapter 7, hooks 8, pathmatch 6, policy_review 11, reconcile 8, record 10, router 10, seclint 10, tier_ceilings 1, and golden_path 1. An independent acceptance audit passed, as recorded in docs/ACCEPTANCE.md. On Python 3.11 or later it uses the standard-library `tomllib` module, and it falls back to the `tomli` backport where `tomllib` is unavailable. Version 1.0.0 is reserved until after the managed GitHub check-run and a public release. The managed check-run is planned for v2. Of the v1.1 work, the `model_corroborated` tier and the executable golden-path regression are applied and shipped in 0.10.0. The golden-path document binding and the DIY comparison harness remain drafted.
+Status: v0.16.0 plus the unreleased fixes listed in CHANGELOG.md, public at github.com/btmoriarty/algol. The v1 review scope is local-only, described below. As of 2026-11-10 the repository has 210 tests across 21 files; run `python3 -m unittest discover -s tests` for the current count. An independent acceptance audit of v1 passed, as recorded in docs/ACCEPTANCE.md. On Python 3.11 or later it uses the standard-library `tomllib` module, and it falls back to the `tomli` backport where `tomllib` is unavailable. Version 1.0.0 is reserved until after the managed GitHub check-run, which is planned for v2.
 
 ## What it is
 
@@ -16,31 +16,35 @@ Algol is intended for projects with multiple reviewers or review engines, especi
 
 ## Architecture: the components
 
-Twelve modules ship under `skills/algol/tools/`. Policy-aware components consume the compiled policy; `evidence.py` and `pathmatch.py` are shared helpers. None performs a general-purpose bug hunt.
+Eighteen modules ship under `skills/algol/tools/`. Policy-aware components consume the compiled policy; `evidence.py` and `pathmatch.py` are shared helpers. None performs a general-purpose bug hunt.
 
-- `compile_policy.py`: validates `.algol/policy.toml` and writes four artifacts, `REVIEW.md`, `scanner-rules.json`, `routing.json`, and `catalog.json`, with a source SHA-256 hash for provenance. Standards are versioned, path-scoped, and open-ended; a change to how the project reviews is a dated, reviewable diff.
-- `seclint.py` and `brevlint.py`: deterministic evidence collectors. They emit evidence rows (`rule_id`, `file`, `line`, `col`, `evidence`, `standard`, `confidence`, `message`), not prose reviews. seclint is security (CWE-tagged starter rules, masked secrets, per-line ignores); brevlint is style and brevity. A collector reports and never gates.
+- `compile_policy.py`: validates `.algol/policy.toml` and writes four artifacts, `REVIEW.md`, `scanner-rules.json`, `routing.json`, and `catalog.json`, with a source SHA-256 hash for provenance. Unknown top-level tables are an error, so a misspelled table cannot drop a section silently. `init.py` drops the shipped starter policy into a project.
+- `seclint.py` and `brevlint.py`: deterministic evidence collectors. They emit evidence rows (`rule_id`, `file`, `line`, `col`, `evidence`, `standard`, `confidence`, `message`), not prose reviews, and name each file relative to the repo root. seclint is security (CWE-tagged starter rules, masked secrets, per-line ignores); brevlint is style and brevity. A collector reports and never gates. A finding from the collectors alone is labeled `floor` and kept out of the way of a real engine's finding.
+- `sarif_adapter.py`: converts any tool's SARIF output (CodeQL, Semgrep, bandit, gitleaks, ruff) into evidence rows, with the tool name as the source.
 - `policy_review.py`: a model pass that checks a change against the project's own standards, not a general bug hunt. Two steps: `prompt` assembles the discipline plus the compiled REVIEW.md plus the change; `ingest` validates the model's finding-set, failing closed on anything malformed, and normalizes it into rows that reconcile takes as heuristic.
-- `router.py`: recommend-only. From the compiled policy and the changed paths it recommends the supported engine the policy declares for each matched standard: `skip`, `brevlint`, `seclint`, `policy-review`, `/code-review`, `ultra`, `gauntlet`, `evidence-locked-uat`, or `applying-formal-rigor`. It orders recommendations deepest-first and never auto-launches. An irreversible undo-cost class adds the policy's `escalate_to` engine and sets the `escalation` flag.
-- `reconcile.py` and `record.py`: the reconciliation and governed-record components. reconcile folds collector rows, a gauntlet run record, and the composed disciplines into one record, grouping observations that share the exact `(file, line, claim)` key into one finding; record holds the Finding, Observation, and Disposition model, the verification tiers, reopens-if conditions, and deterministic serialization. It never upgrades a weaker tier without notice, and that invariant is tested.
+- `router.py`: recommend-only. From the compiled policy and the changed paths it recommends the engine the policy declares for each matched standard: `skip`, `brevlint`, `seclint`, `policy-review`, `/code-review`, `ultra`, `gauntlet`, `evidence-locked-uat`, or `applying-formal-rigor`. It orders recommendations deepest-first and never auto-launches. An undo-cost class adds the policy's `escalate_to` engine and sets the `escalation` flag. `--format commands` prints a shell-quoted command per recommendation and stays silent on a low-risk change.
+- `changed.py` and `gate.py`: the per-change entry point. `changed.py` lists a change's files from git; `gate.py` routes the change, runs the collectors on those files only, reconciles into the record with prior dispositions kept, and reports what is new, carried, and reappeared.
+- `reconcile.py` and `record.py`: the reconciliation and governed-record components. reconcile folds collector and SARIF rows, policy-review output, a gauntlet run record, and the composed verifiers' results into one record. Observations that share `(file, line, claim)` are one finding. A finding's id is set once and persisted, and a finding whose code moved to a new line, with identical evidence, keeps its id and disposition. reconcile refuses to replace an existing record without `--base`. record holds the Finding, Observation, and Disposition model, the verification tiers, reopens-if conditions, and deterministic serialization.
+- `decide.py`: records a human disposition on a finding by id, requires one to three reopens-if conditions unless a permanent verdict is declared, and appends a timestamped event to `events.jsonl`.
+- `verify.py`: raises one finding's tier through the verifying engine. An evidence-locked-uat FAIL reaches `verified`; gauntlet reaches `model_corroborated`.
 - `gauntlet_adapter.py`: the single parser for a gauntlet run record (the deep tier). Algol builds no panel; the deep tier routes fully to gauntlet.
-- `compose_adapter.py`: parses and normalizes results from `evidence-locked-uat` and `applying-formal-rigor`. Routing is declared in policy and recommended by `router.py`; `reconcile.py` ingests the normalized results through `--uat` and `--rigor`.
-- `hooks.py`: two non-modifying Claude Code hooks. A PreToolUse guard warns on a write to an irreversible path; a PostToolUse hook runs the collectors on the touched file and reports counts. The hooks report and never modify a file.
-- `evidence.py` and `pathmatch.py`: the shared evidence-row shape and globstar path matching, reused by the collectors and the router.
+- `compose_adapter.py`: parses and normalizes results from `evidence-locked-uat` and `applying-formal-rigor`, which reconcile ingests through `--uat` and `--rigor`.
+- `hooks.py`: two non-modifying Claude Code hooks. A PreToolUse guard warns on a write to a path in an undo-cost class, matching the path relative to the repo root; a PostToolUse hook runs the collectors on the touched file and reports counts. The hooks report and never modify a file.
+- `evidence.py` and `pathmatch.py`: the shared evidence-row shape, globstar path matching, and repo-relative path handling, reused by the collectors, the router, the gate, and the hooks.
 
 ## The evidence-tier model
 
 Findings carry a verification tier that comes from a source, never from merging. A finding's status is the highest tier among its observations, and it is never synthesized.
 
-Tiers in the repo, lowest to highest: `hypothesis`, `heuristic`, `inference`, `model_corroborated`, `verified`. A collector row is always `heuristic`. A gauntlet `[V]` anchor reads `model_corroborated`, an evidence-locked-uat FAIL reads `verified`, and applying-formal-rigor derives `inference`. Per-source ceilings enforce this: collectors cap at `heuristic`, rigor at `inference`, gauntlet at `model_corroborated`, and only a deterministic verifier (evidence-locked-uat) reaches `verified`. So a model panel's own verdict never reads as a deterministic `verified`. That was a real overclaim in 0.9.0, where a gauntlet `[V]` read `verified`, and it is closed in 0.10.0.
+Tiers in the repo, lowest to highest: `hypothesis`, `heuristic`, `inference`, `model_corroborated`, `verified`. A collector or SARIF row is always `heuristic`. A gauntlet `[V]` anchor reads `model_corroborated`, an evidence-locked-uat FAIL reads `verified`, and applying-formal-rigor derives `inference`. Per-source ceilings enforce this: collectors cap at `heuristic`, rigor at `inference`, gauntlet at `model_corroborated`, and only a deterministic verifier (evidence-locked-uat) reaches `verified`. So a model panel's own verdict never reads as a deterministic `verified`. That was a real overclaim in 0.9.
 
 ## The governed record
 
-reconcile writes one record per change. Each finding keeps its source and its verification tier, kept distinct. The human then attaches a disposition, `accept`, `suppress`, or `defer`, with a rationale and zero to three conditions that would reopen it. A disposition with no reopening condition is allowed but flagged, because a permanent verdict by default is what the record exists to prevent. The record is a plain file versioned with the repo, so what a project decided and why is a diffable part of its history. There is no disposition CLI yet; a decision is recorded through the record library.
+reconcile and the gate write one record per project, versioned with the repo. Each finding keeps its source and its verification tier, kept distinct. A human attaches a disposition with `decide.py`: `accept`, `suppress`, or `defer`, with a rationale and one to three conditions that would reopen it. A disposition with no reopening condition needs an explicit flag and is then marked, because a permanent verdict by default is what the record exists to prevent. Findings are not retired automatically, because the gate collects on changed files only and cannot tell a fixed finding from one it did not scan.
 
 ## Routing and undo-cost
 
-The router reads the compiled routing criteria and two signals: which declared standards the change touches, and its undo-cost. An irreversible undo-cost class recommends the policy's `escalate_to` engine and sets the `escalation` flag. The router recommends a route and records its reason; a human runs the selected engine.
+The router reads the compiled routing criteria and two signals: which declared standards the change touches, and its undo-cost. An undo-cost class recommends the policy's `escalate_to` engine and sets the `escalation` flag. The router recommends a route and records its reason; a human runs the selected engine.
 
 ## Composition
 
@@ -48,33 +52,26 @@ Algol builds the project-specific policy, routing, reconciliation, and record la
 
 ## Scope and what is not built
 
-The v1 scope is local-only and is currently shipped as v0.10.0. Algol governs locally run collectors, policy-review, `/code-review`, and `ultra`. It does not integrate with the managed GitHub check-run that posts on a pull request; that integration is planned for v2. Algol does not auto-launch an engine or perform a general-purpose bug hunt. It does not include a native testlint or hard-efficiency heuristic; those axes route to composed tools. Marketplace distribution and a blind-test result table remain on the roadmap.
-
-## v1.1 status
-
-The v1.1 work has three tasks. Task 1 is applied and shipped. Task 2 is partly applied: the executable regression is shipped, and the document binding remains drafted.
-
-1. The `model_corroborated` tier and per-source ceilings (docs/v1.1-tier-brief.md). Applied to `record.py`, `gauntlet_adapter.py`, and `compose_adapter.py`, with a tier-ceiling test.
-2. A golden-path executable regression (docs/golden-path-fixture-brief.md): `tests/test_golden_path.py` runs the real tools end to end and asserts exact commands, streams, fields, and values, with a checked gauntlet fixture. Its second part, a document binding that also fails CI on a docs-only drift, is specified but not yet built.
-
-Task 3 remains drafted:
-
-3. A DIY comparison harness, specified in docs/diy-comparison-brief.md: an Arm A merge versus Algol's reconcile and record, using the same engine outputs and producing a report from the executed run. It compares only the merge and record layers. Its Arm A design has not yet been reviewed by someone defending the DIY baseline, so it is not applied and not ready for public use.
+The v1 scope is local-only. Algol routes to locally run collectors, policy-review, `/code-review`, and `ultra`. `/code-review` and `ultra` have no adapter into reconcile yet; their findings enter as hand-written evidence rows at `heuristic`. Algol does not integrate with the managed GitHub check-run that posts on a pull request; that integration is planned for v2. It does not auto-launch an engine or perform a general-purpose bug hunt. It does not include a native testlint or hard-efficiency heuristic; those axes route to composed tools. Marketplace distribution and a blind-test result table remain on the roadmap.
 
 ## Known limitations and open items
 
-- The one-pager's worked example is not yet bound to the tool by the document-binding check (v1.1 task 2, part 2 is specified, not built). Until it is, treat the one-pager transcript as unverified against the current tool.
-- A throwaway implementation of the draft DIY comparison showed two narrow capability differences. It did not establish that Algol outperforms the full review-engine-plus-CLAUDE.md-plus-script workflow. Policy and routing modes are not yet compared, and Arm A still needs a defender's review.
+- The golden-path executable regression (`tests/test_golden_path.py`) runs the real tools end to end. Its second part, a document binding that would also fail CI on a docs-only drift, is specified in docs/golden-path-spec.md and not built, so the one-pager transcript is not checked against the current tool.
+- A DIY comparison harness is specified in docs/diy-comparison-spec.md and not built. A throwaway implementation of the draft showed two narrow capability differences; it did not establish that Algol outperforms a review-engine-plus-CLAUDE.md-plus-script workflow.
+- Line-move tracking relies on each source's evidence text. seclint keeps only the matched snippet, so a removed hit and a new identical one in the same file can share an identity; the gate lists that finding under its reappeared dispositions.
+- The committed `docs/CHEATSHEET.pdf` predates the current cheat-sheet HTML and is due for a re-render at the next release.
 - No managed check-run, no marketplace distribution, and no blind-test result table yet.
 
 ## Docs map
 
-- docs/DESIGN.md: the design of record.
+- docs/DESIGN.md: the design of record, as written before the code.
 - docs/WALKTHROUGH.md: the acme worked example, real commands.
-- docs/ACCEPTANCE.md: the independent acceptance audit.
+- docs/ACCEPTANCE.md: the independent v1 acceptance audit.
 - docs/CHEATSHEET.md: the one-page cheat sheet.
 - docs/one-pager.md and docs/one-pager.html: the styled one-pager files.
-- docs/golden-path-spec.md: the golden-path fixture spec; the executable regression is applied (tests/test_golden_path.py), the document binding is specified, not built.
-- docs/v1.1-tier-brief.md, docs/golden-path-fixture-brief.md, and docs/diy-comparison-brief.md: the v1.1 task briefs. The tier task is applied. The executable portion of the golden-path task is applied; its document binding remains drafted. The DIY comparison remains drafted.
+- docs/what-algol-does.html: the plain-language explainer.
+- docs/golden-path-spec.md: the golden-path fixture spec.
 - docs/diy-comparison-spec.md: the comparison design.
-- docs/policy.example.toml: a starter policy.
+- docs/archive/: the v1.1 build briefs, kept as design history.
+- docs/policy.example.toml: a small illustrative policy. The shipped starter is skills/algol/starter-policy.toml.
+- skills/algol/references/: one reference per component.

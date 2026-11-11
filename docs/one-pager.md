@@ -1,6 +1,6 @@
 # Algol
 
-**Review control plane for Claude Code.** v0.10.0, local scope.
+**Review control plane for Claude Code.** v0.16.0, local scope.
 
 Algol is the policy, evidence, and decision layer around your Claude Code reviews. It does not perform a general-purpose bug hunt. It reads your versioned review standards, recommends a review depth per change by policy and undo-cost, reconciles findings from supported sources into one record without ever promoting a heuristic to verified, and keeps each human decision with the conditions that would reopen it. The rule everything follows from: a source supplies the strength, Algol preserves it and never upgrades a heuristic to verified without notice, and the human decides.
 
@@ -70,4 +70,4 @@ Write one `.algol/policy.toml` and evolve it through reviewed diffs. Per change:
 
 ## Status and honesty
 
-v0.10.0, local, 98 tests, an independent acceptance audit passed. The `model_corroborated` tier is shipped: a gauntlet `[V]` anchor reads `model_corroborated`, not `verified`. This one-pager's commands and outputs are captured from a real run (the full fixture and assertions are in `docs/golden-path-spec.md`); the gauntlet deep tier is the one step not run here.
+v0.16.0, local, 210 tests, an independent acceptance audit of v1 passed. The `model_corroborated` tier is shipped: a gauntlet `[V]` anchor reads `model_corroborated`, not `verified`. This one-pager's commands and outputs are captured from a real run (the full fixture and assertions are in `docs/golden-path-spec.md`); the gauntlet deep tier is the one step not run here.

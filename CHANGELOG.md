@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased (2026-11-10)
+
+Fixes from a code review. 210 tests total.
+
+- reconcile refuses to replace an existing record without `--base`, which would have erased every disposition; `--overwrite` does it on purpose. The README and SARIF docs now pass `--base`.
+- A finding's id is set once and persisted, and reconcile moves a finding to its new line when the same rule fires on identical evidence, so a disposition survives code moving. The rule is in the README and `references/reconcile-and-record.md`.
+- The hook guard matches undo-cost globs against the path relative to the repo root. It used to match absolute paths, so repo-relative globs never fired and `**/` globs matched folders above the repo. It finds the routing under `$CLAUDE_PROJECT_DIR` and says when the routing is missing.
+- `changed.py` reads `git diff -z`, so non-ASCII paths are no longer dropped.
+- Router commands shell-quote every path.
+- seclint and brevlint name files relative to `--root` and scan a file once; the router's commands scan the change, not the repo. `sarif_adapter --root` makes absolute `file://` URIs relative.
+- The gate finds its record under the project root, skips `.algol/` in a change, and prints finding ids.
+- compile_policy rejects unknown top-level tables and `escalate_to = "skip"`.
+- New `decide.py` records a disposition by id, enforces one to three reopens-if conditions, and appends to `events.jsonl`.
+- Docs: tier ceilings stated correctly in reconcile and policy_review; no claim of `/code-review` or `ultra` reconciliation; internal release notes removed; v1.1 briefs archived; OVERVIEW refreshed.
+
 ## 0.16.0 (2026-08-01)
 
 - Router emits copy-pasteable commands and is silent on low-risk changes. `router.py --format commands` renders each recommendation as the exact command to run, deepest first, with paths filled in: real one-liners for the collectors and policy-review, the slash command for `/code-review` and `ultra`, and a commented how-to for the external and composed engines (gauntlet, evidence-locked-uat, applying-formal-rigor). On a change that matched nothing and fell through to a `skip` default, it prints nothing to stdout and one `nothing to review` line to stderr, so wiring it into every diff stays near-zero cost. New reusable pieces: `command_for`, `is_low_risk`, `render_commands`. The gate uses them: it prints the command under each recommended engine (collectors marked "run by the gate") and short-circuits to one line on a low-risk diff. The floor is unchanged: commands to run, not run for you. Docs in `references/router.md`; 10 unittests. 180 tests total.
