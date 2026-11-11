@@ -19,6 +19,7 @@ sys.path.insert(0, str(REPO / "skills" / "algol" / "tools"))
 
 import gate  # noqa: E402
 import record as rec  # noqa: E402
+from quiet import silence as setUpModule, restore as tearDownModule  # noqa: E402,F401
 
 
 ROUTING = {
@@ -113,6 +114,31 @@ class TestPersistence(unittest.TestCase):
             self.assertEqual(len(summary2["new"]), 1)
             self.assertIn(old, summary2["carried"])
             self.assertNotIn(old, summary2["new"])
+
+
+class TestChangePaths(unittest.TestCase):
+    def test_algol_own_files_are_not_reviewed(self) -> None:
+        # Regression: a change that touched .algol/ (the record the gate writes,
+        # the compiled policy) sent those files through routing and collectors.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = project(tmp)
+            (root / ".algol" / "evil.py").write_text("x = eval(user_input)\n")
+            (root / "a.py").write_text("y = 1\n")
+            record, summary = gate.run_gate(
+                root, ROUTING, SCANNER,
+                [".algol/compiled/routing.json", ".algol/evil.py", "a.py"], None)
+            self.assertEqual(summary["changed_files"], 1)
+            self.assertEqual(sorted({p for r in summary["recommendations"] for p in r["paths"]}), ["a.py"])
+            self.assertEqual(record.findings, [])
+
+    def test_absolute_changed_path_is_made_relative(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = project(tmp)
+            (root / "a.py").write_text("x = eval(user_input)\n")
+            record, summary = gate.run_gate(root, ROUTING, SCANNER, [str(root / "a.py")], None)
+            self.assertEqual(summary["changed_files"], 1)
+            self.assertEqual(sorted({p for r in summary["recommendations"] for p in r["paths"]}), ["a.py"])
+            self.assertEqual({f.file for f in record.findings}, {"a.py"})
 
 
 class TestRouting(unittest.TestCase):

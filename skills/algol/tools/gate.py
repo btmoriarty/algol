@@ -42,11 +42,15 @@ import seclint  # noqa: E402
 import brevlint  # noqa: E402
 import reconcile as rc  # noqa: E402
 from record import Record  # noqa: E402
-from pathmatch import matches  # noqa: E402
+from pathmatch import matches, repo_relative  # noqa: E402
 import changed as changed_mod  # noqa: E402
 
-# Which axis each native collector's rows map to, and how to run it.
+# brevlint's line-length limit when the gate runs it (the CLI's default too).
 _DEFAULT_MAX_LINE = 100
+
+# Algol's own directory. Its compiled artifacts and the record change as a side
+# effect of running Algol, so they are never part of the change under review.
+_ALGOL_DIR = ".algol/"
 
 
 def _run_collector(name: str, rel: str, text: str):
@@ -57,13 +61,15 @@ def _run_collector(name: str, rel: str, text: str):
     return []  # unknown collector: nothing to run here
 
 
-def _norm(paths) -> list[str]:
+def _change_paths(paths, root: Path) -> list[str]:
+    """Repo-relative paths for the change: absolute paths made relative to the
+    root, paths outside the root and under .algol/ dropped."""
     out = []
     for p in paths:
-        p = str(p).replace("\\", "/")
-        if p.startswith("./"):
-            p = p[2:]
-        out.append(p)
+        rel = repo_relative(p, root)
+        if rel is None or rel == _ALGOL_DIR.rstrip("/") or rel.startswith(_ALGOL_DIR):
+            continue
+        out.append(rel)
     return out
 
 
@@ -72,7 +78,7 @@ def run_gate(root: Path, routing: dict, scanner: dict, changed: list[str],
     """Route the change, collect on the changed files, reconcile into base.
     Returns (record, summary). Pure except reading the changed files' text."""
     root = Path(root)
-    changed = _norm(changed)
+    changed = _change_paths(changed, root)
 
     recommendations = router.recommend(routing, changed)
 

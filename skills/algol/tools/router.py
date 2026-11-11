@@ -28,7 +28,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from pathmatch import matches  # noqa: E402
+from pathmatch import matches, norm_rel  # noqa: E402
 
 # Depth ladder, only for ordering the recommendations so the deepest sits first.
 RANK = {
@@ -47,15 +47,9 @@ NOTE = "Recommendation only. Algol does not launch an engine; a human runs it."
 
 
 def _norm(paths) -> list[str]:
-    # Strip a leading "./" prefix only. Not str.lstrip("./"), which would eat the
-    # leading dot of a dotfile path like ".github/workflows/ci.yml".
-    out = []
-    for p in paths:
-        p = p.replace("\\", "/")
-        if p.startswith("./"):
-            p = p[2:]
-        out.append(p)
-    return out
+    # pathmatch.norm_rel strips a leading "./" prefix only, keeping the dot of a
+    # dotfile path like ".github/workflows/ci.yml".
+    return [norm_rel(p) for p in paths]
 
 
 def recommend(routing: dict, changed) -> dict:
