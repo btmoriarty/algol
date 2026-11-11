@@ -76,7 +76,7 @@ Algol composes with the ecosystem and builds only the differentiated part. The w
 - Efficiency axis: route the hard complexity claims to applying-formal-rigor lens 4 (a full Big-O derivation). brevlint stays for style and brevity only; efficiency claims derive, they are not heuristics.
 - Security axis: Algol-native (seclint plus security policy). The composed sets do not cover it.
 - Router pattern: model on the using-epistemic-skills router and cc10x's anti-anchoring.
-- Hooks: ship Algol's mechanical checks as Claude Code hooks so a check runs whether the model remembers or not. Keep hooks non-modifying (lint and report); a PreToolUse guard is where reversibility routing (A13) is enforced. See A17 in QUEUE.md for the context-bloat caveat on modifying hooks.
+- Hooks: ship Algol's mechanical checks as Claude Code hooks so a check runs whether the model remembers or not. Keep hooks non-modifying (lint and report); a PreToolUse guard is where reversibility routing (A13) is enforced. A17 is the context-bloat caveat on modifying hooks.
 
 ## v1 acceptance
 
