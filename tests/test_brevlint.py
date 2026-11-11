@@ -15,6 +15,7 @@ sys.path.insert(0, str(REPO / "skills" / "algol" / "tools"))
 
 import brevlint  # noqa: E402
 from evidence import EvidenceRow, rows_to_json  # noqa: E402
+from quiet import silence as setUpModule, restore as tearDownModule  # noqa: E402,F401
 
 
 class TestLintText(unittest.TestCase):

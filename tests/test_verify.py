@@ -19,6 +19,7 @@ sys.path.insert(0, str(REPO / "skills" / "algol" / "tools"))
 
 import verify  # noqa: E402
 import record as rec  # noqa: E402
+from quiet import silence as setUpModule, restore as tearDownModule  # noqa: E402,F401
 
 
 def heuristic_record(file="a.py", line=7, claim="seclint/weak-hash") -> rec.Record:

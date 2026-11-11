@@ -20,6 +20,7 @@ sys.path.insert(0, str(REPO / "skills" / "algol" / "tools"))
 import init as init_mod  # noqa: E402
 import compile_policy as cp  # noqa: E402
 import router  # noqa: E402
+from quiet import silence as setUpModule, restore as tearDownModule  # noqa: E402,F401
 
 STARTER = REPO / "skills" / "algol" / "starter-policy.toml"
 

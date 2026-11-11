@@ -9,6 +9,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "skills" / "algol" / "tools"))
 
 import seclint  # noqa: E402
+from quiet import silence as setUpModule, restore as tearDownModule  # noqa: E402,F401
 
 
 def ids(rows):

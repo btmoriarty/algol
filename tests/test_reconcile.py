@@ -12,6 +12,7 @@ sys.path.insert(0, str(REPO / "skills" / "algol" / "tools"))
 
 import reconcile as rc  # noqa: E402
 import record as rec  # noqa: E402
+from quiet import silence as setUpModule, restore as tearDownModule  # noqa: E402,F401
 
 
 def collector_row(rule_id="brevlint/long-line", file="a.py", line=3, msg="m", ev="e"):
