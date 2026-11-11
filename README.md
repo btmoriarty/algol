@@ -10,7 +10,7 @@ A project where more than one person, or more than one engine, reviews code, and
 
 ## What you get
 
-You stop deciding review depth by gut. Algol routes by policy and undo-cost, so a schema migration or a payments change escalates on its own and a typo fix does not burn a deep review. You get one record instead of scattered findings across `/code-review`, `ultra`, and a security scan, and it never quietly turns a heuristic guess into a verified result, so you can see what was checked versus what was estimated. Your decisions do not evaporate: a "won't fix" carries the one or two conditions that would reopen it, and the standards themselves are a versioned file a new contributor inherits.
+You stop deciding review depth by gut. Algol routes by policy and undo-cost, so a schema migration or a payments change escalates on its own and a typo fix does not burn a deep review. You get one record instead of scattered findings across your scanners (any tool that writes SARIF), the policy review, and the deep tier, and it never quietly turns a heuristic guess into a verified result, so you can see what was checked versus what was estimated. Your decisions do not evaporate: a "won't fix" carries the one or two conditions that would reopen it, and the standards themselves are a versioned file a new contributor inherits.
 
 ## Why these defaults
 

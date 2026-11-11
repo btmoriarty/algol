@@ -12,7 +12,7 @@ Algol owns four things and reviews nothing: policy (what the project's standards
 - Evidence collectors: seclint (security, Algol-native) and brevlint (style and brevity). Deterministic. They emit structured rows (rule_id, file, line, evidence, standard, confidence), not prose reviews.
 - policy-review: a model pass against the project's declared standards. Ships in v1.
 - router: recommends an engine from policy and an undo-cost signal. Irreversible changes escalate on their own. Recommends, never auto-launches.
-- reconcile: merges every source into one record, keeps ultra-verified distinct from heuristic, never upgrades silently. Built on an evidence-required rule: a finding needs a verbatim file:line or it is demoted.
+- reconcile: merges every supported source into one record, keeps verified distinct from model_corroborated and heuristic, never upgrades silently. `/code-review` and `ultra` have no adapter yet; their findings enter as hand-written evidence rows. Built on an evidence-required rule: a finding needs a verbatim file:line or it is demoted.
 - Governed record: reconciled findings plus each disposition and its reopens-if conditions, on disk, versioned with the repo, in a namespace outside the harness sensitive-file gate.
 - Deep tier: routes to gauntlet (composed, not rebuilt) and consumes its run record.
 

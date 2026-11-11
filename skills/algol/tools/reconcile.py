@@ -7,8 +7,9 @@ the whole tool is built to protect:
 
   - It keeps every source's observation, with that source's verification tier.
   - It never silently upgrades a heuristic to verified. A collector row enters
-    as "heuristic" and stays "heuristic"; a finding is only "verified" when a
-    source that verified it (a gauntlet [V] anchor) says so.
+    as "heuristic" and stays "heuristic". A finding is "verified" only when a
+    deterministic verifier (an evidence-locked-uat FAIL) says so; a gauntlet
+    [V] anchor reaches "model_corroborated", never "verified".
   - Re-running against an existing record preserves the human dispositions and
     their reopens-if conditions, so the record persists across a repo's history.
 

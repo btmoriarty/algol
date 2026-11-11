@@ -16,8 +16,9 @@ Two subcommands:
            consumes, source "policy-review".
 
 A model pass is reasoned, not mechanically verified, so its rows enter reconcile
-as heuristic like any other collector's. Only the deep tier or an ultra pass can
-raise a finding to verified; policy-review never claims that.
+as heuristic like any other collector's. Only a deterministic verifier (an
+evidence-locked-uat FAIL) raises a finding to verified, and gauntlet reaches
+model_corroborated; policy-review never claims either.
 
 Floor: Python 3.11+, stdlib only (evidence.py is a sibling module).
 """
