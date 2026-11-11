@@ -92,7 +92,14 @@ def _str_list(value: object, where: str) -> list[str]:
     return list(value)  # type: ignore[return-value]
 
 
+TOP_LEVEL_TABLES = ("meta", "standard", "undo_cost", "router")
+
+
 def parse_policy(data: dict) -> Policy:
+    # An unknown table is an error, not a no-op: a typo like [[undo-cost]] would
+    # otherwise drop every escalation and compile cleanly.
+    unknown = sorted(k for k in data if k not in TOP_LEVEL_TABLES)
+    _require(not unknown, f"unknown top-level table(s) {unknown}; expected only {list(TOP_LEVEL_TABLES)}")
     meta = data.get("meta", {})
     _require(isinstance(meta, dict), "meta: expected a table")
     version = meta.get("version")
@@ -132,8 +139,9 @@ def parse_policy(data: dict) -> Policy:
         seen_classes.add(cls)
         escalate_to = u.get("escalate_to")
         _require(
-            isinstance(escalate_to, str) and escalate_to in KNOWN_ENGINES,
-            f"{where}.escalate_to: must be one of {sorted(KNOWN_ENGINES)}",
+            isinstance(escalate_to, str) and escalate_to in KNOWN_ENGINES and escalate_to != "skip",
+            f"{where}.escalate_to: must be one of {sorted(KNOWN_ENGINES - {'skip'})} "
+            "(escalating to skip would silence the class)",
         )
         paths = _str_list(u.get("paths"), f"{where}.paths")
         undo_cost.append(UndoCost(cls=cls, paths=paths, escalate_to=escalate_to))

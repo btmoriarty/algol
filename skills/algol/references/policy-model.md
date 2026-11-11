@@ -65,9 +65,10 @@ Into `.algol/compiled/` (or `--out DIR`):
 
 ## Rules the compiler enforces (hard errors, named)
 
+- The only top-level tables are `meta`, `standard`, `undo_cost`, and `router`. Any other name is an error, so a typo such as `[[undo-cost]]` fails instead of dropping every escalation.
 - `meta.version` is a required string.
 - At least one `[[standard]]`; each has a non-empty `axis`, a non-empty `paths` list of strings, and an `engine` in the known set.
-- Each `[[undo_cost]]` has a non-empty `class` (unique), a non-empty `paths` list, and an `escalate_to` in the known set.
+- Each `[[undo_cost]]` has a non-empty `class` (unique), a non-empty `paths` list, and an `escalate_to` in the known set other than `skip`.
 - `router.default`, when present, is in the known set.
 
 A malformed policy exits non-zero with a message naming the exact field.

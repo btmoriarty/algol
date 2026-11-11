@@ -58,6 +58,27 @@ class TestParse(unittest.TestCase):
         with self.assertRaises(cp.PolicyError):
             cp.parse_policy(data)
 
+    def test_misspelled_table_fails(self) -> None:
+        # Regression: [[undo-cost]] (hyphen) was ignored, so every escalation
+        # vanished and the policy still compiled.
+        text = (
+            '[meta]\nversion="0"\n'
+            '[[undo-cost]]\nclass="x"\npaths=["a"]\nescalate_to="gauntlet"\n'
+            '[[standard]]\naxis="a"\npaths=["x"]\nengine="skip"\n'
+        )
+        with self.assertRaises(cp.PolicyError) as ctx:
+            cp.parse_policy(self._load(text))
+        self.assertIn("undo-cost", str(ctx.exception))
+
+    def test_escalate_to_skip_fails(self) -> None:
+        text = (
+            '[meta]\nversion="0"\n'
+            '[[undo_cost]]\nclass="x"\npaths=["a"]\nescalate_to="skip"\n'
+            '[[standard]]\naxis="a"\npaths=["x"]\nengine="skip"\n'
+        )
+        with self.assertRaises(cp.PolicyError):
+            cp.parse_policy(self._load(text))
+
     def test_duplicate_undo_class_fails(self) -> None:
         text = (
             '[meta]\nversion="0"\n'
